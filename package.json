@@ -1,0 +1,39 @@
+{
+  "name": "run-elsewhere",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Run a command in a new terminal context (tmux pane, Terminal.app window, etc.)",
+  "license": "MIT",
+  "engines": {
+    "pnpm": ">=8.0.0",
+    "node": ">=18.0.0"
+  },
+  "packageManager": "pnpm@9.0.0",
+  "bin": {
+    "elsewhere": "./dist/cli.cjs"
+  },
+  "scripts": {
+    "preinstall": "npx -y only-allow pnpm",
+    "build": "tsup",
+    "dev": "tsx src/cli.ts --help",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint .",
+    "prepare": "pnpm run build"
+  },
+  "dependencies": {
+    "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^9.0.0",
+    "prettier": "^3.0.0",
+    "tsx": "^4.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.6.0",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^2.0.0"
+  }
+}
