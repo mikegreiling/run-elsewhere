@@ -116,23 +116,30 @@ This project uses **semantic-release** for automatic versioning and npm publishi
 
 ### Setup (One-time)
 
-1. **Create GitHub repository** at `github.com/mikegreiling/run-elsewhere`
-2. **Generate npm token**:
-   ```bash
-   npm login
-   npm token create  # (or go to npmjs.com/settings/tokens)
-   ```
-3. **Add GitHub Actions secrets**:
-   - Go to GitHub repo Settings → Secrets and variables → Actions
-   - Create `NPM_TOKEN` secret with your npm token
-   - `GITHUB_TOKEN` is automatically provided by GitHub Actions
+**Important**: This project has been pre-configured with OIDC Trusted Publishing for secure, token-free npm publishing. See [OIDC_TRUSTED_PUBLISHING.md](OIDC_TRUSTED_PUBLISHING.md) for details.
 
-4. **Push to GitHub**:
-   ```bash
-   git remote add origin https://github.com/mikegreiling/run-elsewhere.git
-   git branch -M main
-   git push -u origin main
-   ```
+1. **GitHub repository created** at `github.com/mikegreiling/run-elsewhere` ✅
+2. **npm token configured** as GitHub secret (for initial publish only) ✅
+3. **GitHub Actions workflow ready** with OIDC support ✅
+4. **Code pushed to GitHub** ✅
+
+### First Release (Uses Token)
+
+When you're ready for the first release:
+
+```bash
+git commit -m "feat: initial release"
+git push origin main
+```
+
+This will use your `NPM_TOKEN` to publish the first version to npm.
+
+### After First Publish: Switch to OIDC (Highly Recommended)
+
+After the package is published, follow the instructions in [OIDC_TRUSTED_PUBLISHING.md](OIDC_TRUSTED_PUBLISHING.md) to:
+1. Configure GitHub Actions as a trusted publisher on npmjs.com
+2. Optionally remove the NPM_TOKEN secret for enhanced security
+3. All future publishes will use OIDC (no token expiration!)
 
 ### Making Releases
 
