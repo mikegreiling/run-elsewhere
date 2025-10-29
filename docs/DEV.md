@@ -3,13 +3,13 @@
 ## Setup
 
 ```bash
-# Install dependencies
-npm install
+# Install dependencies (pnpm required - enforced via preinstall hook)
+pnpm install
 
 # Check that everything works
-npm run lint
-npm run build
-npm test
+pnpm lint
+pnpm build
+pnpm test
 ```
 
 ## Development Workflow
@@ -18,18 +18,18 @@ npm test
 
 ```bash
 # Run the CLI locally with tsx
-npm run dev
+pnpm dev
 
 # Run with custom arguments
-npx tsx src/cli.ts --help
-npx tsx src/cli.ts --dry-run -c "echo hi"
+pnpm tsx src/cli.ts --help
+pnpm tsx src/cli.ts --dry-run -c "echo hi"
 ```
 
 ### Building
 
 ```bash
 # Build once
-npm run build
+pnpm build
 
 # Build output goes to ./dist/cli.cjs
 
@@ -41,20 +41,20 @@ node dist/cli.cjs --help
 
 ```bash
 # Run all tests once
-npm test
+pnpm test
 
 # Run tests in watch mode
-npm run test:watch
+pnpm test:watch
 
 # Run tests for a specific file
-npm test -- command.test.ts
+pnpm test -- command.test.ts
 ```
 
 ### Linting
 
 ```bash
 # Check for ESLint violations
-npm run lint
+pnpm lint
 
 # ESLint config: eslint.config.js
 # TypeScript strict checks are enabled
@@ -91,12 +91,15 @@ test/
 - `yargs` - CLI argument parsing
 
 ### Development
+- `@semantic-release/changelog` - Auto-generates changelog from commits
+- `@semantic-release/git` - Updates git with release commits and tags
 - `@typescript-eslint/eslint-plugin` - Type-aware ESLint rules
 - `@typescript-eslint/parser` - TypeScript parser for ESLint
 - `@types/node` - Node.js type definitions
 - `eslint` - Linter
 - `prettier` - Code formatter
-- `tsx` - TypeScript execution (for `npm run dev`)
+- `semantic-release` - Automated versioning and npm publishing
+- `tsx` - TypeScript execution (for `pnpm dev`)
 - `tsup` - Bundler
 - `typescript` - TypeScript compiler
 - `vitest` - Test runner
@@ -107,27 +110,65 @@ test/
 - **Unchecked index access** - `noUncheckedIndexedAccess: true` prevents unsafe array access
 - **Type-aware ESLint** - Parser configured with `parserOptions.project: true`
 
-## Publishing
+## Publishing & Releases
 
-### Before publishing
+This project uses **semantic-release** for automatic versioning and npm publishing. Releases are triggered automatically based on git commits using conventional commit messages.
 
-- Update version in `package.json`
-- Update version in this document if needed
-- Ensure tests pass: `npm test`
-- Ensure build passes: `npm run build`
-- Ensure no ESLint errors: `npm run lint`
+### Setup (One-time)
 
-### Publishing to npm
+1. **Create GitHub repository** at `github.com/mikegreiling/run-elsewhere`
+2. **Generate npm token**:
+   ```bash
+   npm login
+   npm token create  # (or go to npmjs.com/settings/tokens)
+   ```
+3. **Add GitHub Actions secrets**:
+   - Go to GitHub repo Settings → Secrets and variables → Actions
+   - Create `NPM_TOKEN` secret with your npm token
+   - `GITHUB_TOKEN` is automatically provided by GitHub Actions
 
-```bash
-# Login (if not already logged in)
-npm login
+4. **Push to GitHub**:
+   ```bash
+   git remote add origin https://github.com/mikegreiling/run-elsewhere.git
+   git branch -M main
+   git push -u origin main
+   ```
 
-# Publish
-npm publish --access public
+### Making Releases
+
+Releases are **fully automated** via GitHub Actions. Just commit and push to `main` with conventional commit messages:
+
+**Commit message examples:**
+```
+feat: add support for iTerm2          → Version bump: MINOR (0.1.0 → 0.2.0)
+fix: handle SSH sessions correctly    → Version bump: PATCH (0.1.0 → 0.1.1)
+docs: update README                   → No version bump, no release
+BREAKING CHANGE: restructure API      → Version bump: MAJOR (0.1.0 → 1.0.0)
 ```
 
-The `prepare` script in package.json will automatically build before publishing.
+**Workflow**:
+1. Make code changes
+2. Commit with conventional message: `git commit -m "feat: add new feature"`
+3. Push to main: `git push origin main`
+4. GitHub Actions automatically:
+   - Runs tests and linting
+   - Analyzes commit messages
+   - Updates version in package.json (if needed)
+   - Publishes to npm (if needed)
+   - Creates CHANGELOG.md entries
+   - Pushes updated files back to git with release tag
+
+### Manual Release (if needed)
+
+If automated release doesn't work or you need to manually trigger:
+
+```bash
+# Locally (requires NPM_TOKEN in environment)
+export NPM_TOKEN="your-npm-token"
+pnpm semantic-release
+```
+
+Or trigger manually via GitHub Actions UI → "Release" workflow → "Run workflow".
 
 ## Troubleshooting
 
