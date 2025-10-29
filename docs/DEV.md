@@ -145,13 +145,21 @@ After the package is published, follow the instructions in [OIDC_TRUSTED_PUBLISH
 
 Releases are **fully automated** via GitHub Actions. Just commit and push to `main` with conventional commit messages:
 
-**Commit message examples:**
+**Commit message examples (stays in 0.x.x range):**
 ```
-feat: add support for iTerm2          → Version bump: MINOR (0.1.0 → 0.2.0)
-fix: handle SSH sessions correctly    → Version bump: PATCH (0.1.0 → 0.1.1)
-docs: update README                   → No version bump, no release
-BREAKING CHANGE: restructure API      → Version bump: MAJOR (0.1.0 → 1.0.0)
+fix: handle SSH sessions correctly        → PATCH bump (0.1.0 → 0.1.1) ✅
+feat: add support for iTerm2 terminal     → MINOR bump (0.1.0 → 0.2.0) ✅
+perf: optimize tmux split performance    → PATCH bump (0.1.0 → 0.1.1) ✅
+docs: update README examples              → No version bump, no release ✅
 ```
+
+**❌ AVOID these patterns (would bump to 1.0.0):**
+```
+BREAKING CHANGE: remove old API          → Would bump to MAJOR (0.1.0 → 1.0.0)
+feat!: restructure commands              → Would bump to MAJOR (0.1.0 → 1.0.0)
+```
+
+For Phase 1 development, stick to `fix:` and `feat:` prefixes only. They keep the version in 0.x.x range.
 
 **Workflow**:
 1. Make code changes
