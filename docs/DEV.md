@@ -2,6 +2,10 @@
 
 ## Setup
 
+**Requirements:**
+- Node.js 22+ (for semantic-release compatibility)
+- pnpm 9+ (enforced via preinstall hook)
+
 ```bash
 # Install dependencies (pnpm required - enforced via preinstall hook)
 pnpm install
@@ -153,13 +157,27 @@ perf: optimize tmux split performance    → PATCH bump (0.1.0 → 0.1.1) ✅
 docs: update README examples              → No version bump, no release ✅
 ```
 
-**❌ AVOID these patterns (would bump to 1.0.0):**
+**BREAKING CHANGE handling (configured to stay in 0.x.x):**
 ```
-BREAKING CHANGE: remove old API          → Would bump to MAJOR (0.1.0 → 1.0.0)
-feat!: restructure commands              → Would bump to MAJOR (0.1.0 → 1.0.0)
+BREAKING CHANGE: remove old API          → MINOR bump (0.1.0 → 0.2.0) ✅
+feat!: restructure commands              → MINOR bump (0.1.0 → 0.2.0) ✅
 ```
 
-For Phase 1 development, stick to `fix:` and `feat:` prefixes only. They keep the version in 0.x.x range.
+**⚠️ Important Configuration Note:**
+
+This project is configured in `.releaserc.json` to **prevent major version bumps**:
+```json
+{
+  "releaseRules": [
+    {"breaking": true, "release": "minor"}
+  ]
+}
+```
+
+This keeps all releases in the 0.x.x range, treating breaking changes as minor bumps instead of major. This is intentional for Phase 1 and early Phase 2 development.
+
+**When ready to publish 1.0.0:**
+Remove the `releaseRules` configuration from `.releaserc.json`, then use a `BREAKING CHANGE` commit to trigger the major version bump to 1.0.0.
 
 **Workflow**:
 1. Make code changes
