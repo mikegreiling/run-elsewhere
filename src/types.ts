@@ -1,5 +1,5 @@
 export interface Options {
-  terminal?: "tmux" | "Terminal";
+  terminal?: "tmux" | "Terminal" | "zellij";
   pane?: boolean;
   tab?: boolean;
   window?: boolean;
@@ -18,7 +18,7 @@ export interface Options {
 export type SplitDirection = "h" | "v";
 
 export interface Plan {
-  type: "tmux" | "terminal" | "error";
+  type: "tmux" | "terminal" | "zellij" | "error";
   command?: string;
   direction?: SplitDirection;
   exitCode?: number;
@@ -38,4 +38,6 @@ export interface Environment {
   isMacOS: boolean;
   terminalAppExists: boolean;
   tmuxAvailable: boolean;
+  inZellij: boolean;
+  zellijAvailable: boolean;
 }

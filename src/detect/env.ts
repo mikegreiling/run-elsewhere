@@ -6,6 +6,8 @@ export function detectEnvironment(): Environment {
   const inSSH = Boolean(process.env.SSH_TTY ?? process.env.SSH_CONNECTION);
   const isMacOS = process.platform === "darwin";
   const tmuxAvailable = isTmuxAvailable();
+  const inZellij = Boolean(process.env.ZELLIJ);
+  const zellijAvailable = isZellijAvailable();
 
   return {
     inTmux,
@@ -13,6 +15,8 @@ export function detectEnvironment(): Environment {
     isMacOS,
     terminalAppExists: isMacOS ? isTerminalAppAvailable() : false,
     tmuxAvailable,
+    inZellij,
+    zellijAvailable,
   };
 }
 
@@ -28,9 +32,18 @@ function isTmuxAvailable(): boolean {
 function isTerminalAppAvailable(): boolean {
   try {
     execSync(
-      'test -d "/Applications/Terminal.app"',
+      'osascript -e \'POSIX path of (path to application "Terminal")\'',
       { stdio: "ignore" }
     );
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function isZellijAvailable(): boolean {
+  try {
+    execSync("which zellij", { stdio: "ignore" });
     return true;
   } catch {
     return false;

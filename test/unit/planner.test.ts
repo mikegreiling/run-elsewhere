@@ -9,6 +9,8 @@ const mockEnv: Environment = {
   isMacOS: true,
   terminalAppExists: true,
   tmuxAvailable: true,
+  inZellij: false,
+  zellijAvailable: true,
 };
 
 describe("createPlan", () => {
@@ -57,6 +59,22 @@ describe("createPlan", () => {
     expect(plan.exitCode).toBe(EXIT_CODES.SOFTWARE_ERROR);
   });
 
+  it("returns zellij plan when forced with --terminal=zellij", () => {
+    const options: Options = { terminal: "zellij" };
+    const env: Environment = { ...mockEnv, inZellij: true };
+    const plan = createPlan("echo hi", options, env);
+    expect(plan.type).toBe("zellij");
+    expect(plan.command).toBe("echo hi");
+  });
+
+  it("returns error when --terminal=zellij but not in zellij", () => {
+    const options: Options = { terminal: "zellij" };
+    const env: Environment = { ...mockEnv, inZellij: false };
+    const plan = createPlan("echo hi", options, env);
+    expect(plan.type).toBe("error");
+    expect(plan.exitCode).toBe(EXIT_CODES.SOFTWARE_ERROR);
+  });
+
   it("returns error for invalid --terminal option", () => {
     const options: Options = { terminal: "invalid" as "tmux" | "Terminal" };
     const plan = createPlan("echo hi", options, mockEnv);
@@ -98,6 +116,32 @@ describe("createPlan", () => {
     expect(plan.type).toBe("terminal");
   });
 
+  it("returns zellij plan in auto path when inside zellij", () => {
+    const options: Options = {};
+    const env: Environment = {
+      ...mockEnv,
+      inTmux: false,
+      inZellij: true,
+      zellijAvailable: true,
+    };
+    const plan = createPlan("echo hi", options, env);
+    expect(plan.type).toBe("zellij");
+  });
+
+  it("returns terminal plan when zellij unavailable but Terminal available", () => {
+    const options: Options = {};
+    const env: Environment = {
+      ...mockEnv,
+      inTmux: false,
+      inZellij: true,
+      zellijAvailable: false,
+      isMacOS: true,
+      terminalAppExists: true,
+    };
+    const plan = createPlan("echo hi", options, env);
+    expect(plan.type).toBe("terminal");
+  });
+
   it("returns error 75 when no viable backend", () => {
     const options: Options = {};
     const env: Environment = {
@@ -132,6 +176,30 @@ describe("createPlan", () => {
     const env: Environment = { ...mockEnv, inTmux: true };
     const plan = createPlan("echo hi", options, env);
     expect(plan.type).toBe("tmux");
+    expect(plan.direction).toBe("h");
+  });
+
+  it("zellij plan uses horizontal split for left/right", () => {
+    const options: Options = { right: true };
+    const env: Environment = { ...mockEnv, inZellij: true };
+    const plan = createPlan("echo hi", options, env);
+    expect(plan.type).toBe("zellij");
+    expect(plan.direction).toBe("h");
+  });
+
+  it("zellij plan uses vertical split for up/down", () => {
+    const options: Options = { down: true };
+    const env: Environment = { ...mockEnv, inZellij: true };
+    const plan = createPlan("echo hi", options, env);
+    expect(plan.type).toBe("zellij");
+    expect(plan.direction).toBe("v");
+  });
+
+  it("zellij plan defaults to horizontal split", () => {
+    const options: Options = {};
+    const env: Environment = { ...mockEnv, inZellij: true };
+    const plan = createPlan("echo hi", options, env);
+    expect(plan.type).toBe("zellij");
     expect(plan.direction).toBe("h");
   });
 });

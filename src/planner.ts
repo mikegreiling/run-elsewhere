@@ -33,6 +33,9 @@ export function createPlan(
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   } else if (options.terminal === "Terminal") {
       return planTerminal(command, options, env);
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  } else if (options.terminal === "zellij") {
+      return planZellij(command, options, env);
     } else {
       return {
         type: "error",
@@ -60,6 +63,11 @@ export function createPlan(
   // Try tmux first
   if (env.inTmux && env.tmuxAvailable) {
     return planTmux(command, options, env);
+  }
+
+  // Then try zellij
+  if (env.inZellij && env.zellijAvailable) {
+    return planZellij(command, options, env);
   }
 
   // Then try macOS Terminal
@@ -114,6 +122,29 @@ function planTerminal(
   const plan: Plan = {
     type: "terminal",
     command,
+  };
+  return plan;
+}
+
+function planZellij(
+  command: string,
+  options: Options,
+  env: Environment
+): Plan {
+  if (!env.inZellij || !env.zellijAvailable) {
+    return {
+      type: "error",
+      exitCode: EXIT_CODES.SOFTWARE_ERROR,
+      error: ERROR_MESSAGES.ZELLIJ_FORCED_NOT_AVAILABLE,
+    };
+  }
+
+  const direction = getSplitDirection(options);
+
+  const plan: Plan = {
+    type: "zellij",
+    command,
+    direction,
   };
   return plan;
 }

@@ -7,6 +7,7 @@ import { resolveCommand } from "./command.js";
 import { createPlan } from "./planner.js";
 import { runInTmuxPane } from "./run/tmux.js";
 import { runInTerminalApp } from "./run/macos/terminal.js";
+import { runInZellijPane } from "./run/zellij.js";
 import { EXIT_CODES } from "./constants.js";
 import type { Options } from "./types.js";
 
@@ -22,7 +23,7 @@ async function main(): Promise<void> {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       .option("terminal", {
         type: "string",
-        description: "Terminal backend to use: 'tmux' or 'Terminal'",
+        description: "Terminal backend to use: 'tmux', 'zellij', or 'Terminal'",
         alias: "T",
       })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -130,7 +131,7 @@ async function main(): Promise<void> {
       !process.stdin.isTTY
     );
     const options: Options = {
-      terminal: argv.terminal as "tmux" | "Terminal" | undefined,
+      terminal: argv.terminal as "tmux" | "Terminal" | "zellij" | undefined,
       pane: argv.pane,
       tab: argv.tab,
       window: argv.window,
@@ -174,6 +175,12 @@ async function main(): Promise<void> {
         throw new Error("Invalid terminal plan: missing command");
       }
       runInTerminalApp(plan.command);
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    } else if (plan.type === "zellij") {
+      if (!plan.command || !plan.direction) {
+        throw new Error("Invalid zellij plan: missing command or direction");
+      }
+      runInZellijPane(plan.command, plan.direction);
     } else {
       const _exhaustive: never = plan.type;
       throw new Error(`Unknown plan type: ${String(_exhaustive)}`);

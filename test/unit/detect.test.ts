@@ -71,5 +71,19 @@ describe("detectEnvironment", () => {
     expect(env).toHaveProperty("isMacOS");
     expect(env).toHaveProperty("terminalAppExists");
     expect(env).toHaveProperty("tmuxAvailable");
+    expect(env).toHaveProperty("inZellij");
+    expect(env).toHaveProperty("zellijAvailable");
+  });
+
+  it("detects when inside zellij", () => {
+    process.env.ZELLIJ = "1";
+    const env = detectEnvironment();
+    expect(env.inZellij).toBe(true);
+  });
+
+  it("detects when not inside zellij", () => {
+    delete process.env.ZELLIJ;
+    const env = detectEnvironment();
+    expect(env.inZellij).toBe(false);
   });
 });
