@@ -2,17 +2,23 @@ import { execSync } from "child_process";
 import { isRemoteSession } from "../detect/remote.js";
 
 /**
- * Execute AppleScript with remote session guard
+ * Execute AppleScript with macOS and remote session guards
  *
- * AppleScript requires macOS user interaction and cannot be executed in remote sessions.
- * This wrapper prevents permission prompts and AppleScript errors when running in SSH,
- * Mosh, or other remote terminal contexts.
+ * AppleScript is only available on macOS and cannot be executed in remote sessions.
+ * This wrapper prevents permission prompts and AppleScript errors when running on
+ * non-macOS systems or in SSH, Mosh, or other remote terminal contexts.
  *
  * @param script - The AppleScript code to execute
- * @throws Error if in a remote session or if AppleScript fails
+ * @throws Error if not on macOS, in a remote session, or if AppleScript fails
  * @returns The output of the AppleScript execution
  */
 export function executeAppleScript(script: string): string {
+  // AppleScript is only available on macOS
+  if (process.platform !== "darwin") {
+    throw new Error("AppleScript is only available on macOS");
+  }
+
+  // Cannot execute AppleScript in remote sessions
   if (isRemoteSession()) {
     throw new Error(
       "Cannot execute AppleScript in remote session (SSH, Mosh, etc.)"
