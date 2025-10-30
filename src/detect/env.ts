@@ -28,7 +28,7 @@ function isTmuxAvailable(): boolean {
 function isTerminalAppAvailable(): boolean {
   try {
     execSync(
-      'test -d "/Applications/Terminal.app"',
+      'osascript -e \'POSIX path of (path to application "Terminal")\'',
       { stdio: "ignore" }
     );
     return true;
