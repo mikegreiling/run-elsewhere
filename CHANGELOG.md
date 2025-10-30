@@ -1,3 +1,10 @@
+## [0.2.3](https://github.com/mikegreiling/run-elsewhere/compare/v0.2.2...v0.2.3) (2025-10-30)
+
+
+### Bug Fixes
+
+* use zellij write-chars for tmux-like command execution ([c2cb9fc](https://github.com/mikegreiling/run-elsewhere/commit/c2cb9fc6ff114906ccaed747ea9ef00101e79f84))
+
 ## [0.2.2](https://github.com/mikegreiling/run-elsewhere/compare/v0.2.1...v0.2.2) (2025-10-30)
 
 
