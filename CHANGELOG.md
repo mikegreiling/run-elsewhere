@@ -1,3 +1,10 @@
+## [0.2.2](https://github.com/mikegreiling/run-elsewhere/compare/v0.2.1...v0.2.2) (2025-10-30)
+
+
+### Bug Fixes
+
+* add macOS check to AppleScript wrapper ([f668194](https://github.com/mikegreiling/run-elsewhere/commit/f66819485772d10a050bbd5ba037dae90e03f0cf))
+
 ## [0.2.1](https://github.com/mikegreiling/run-elsewhere/compare/v0.2.0...v0.2.1) (2025-10-30)
 
 
