@@ -49,13 +49,15 @@ export function createPlan(
 
   // SSH/headless guard
   if (env.inSSH) {
-    if (env.inTmux) {
+    if (env.inTmux && env.tmuxAvailable) {
       return planTmux(command, options, env);
+    } else if (env.inZellij && env.zellijAvailable) {
+      return planZellij(command, options, env);
     } else {
       return {
         type: "error",
         exitCode: EXIT_CODES.SSH_GUI_INFEASIBLE,
-        error: ERROR_MESSAGES.SSH_DETECTED_NO_TMUX,
+        error: ERROR_MESSAGES.SSH_DETECTED_NO_MULTIPLEXER,
       };
     }
   }

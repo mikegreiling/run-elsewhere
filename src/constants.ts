@@ -11,7 +11,7 @@ export const DEFAULT_SPLIT_DIRECTION = "right" as const;
 
 export const ERROR_MESSAGES = {
   NO_COMMAND_PROVIDED: "No command provided. Use -c, --, or stdin.",
-  SSH_DETECTED_NO_TMUX: "SSH detected and not inside tmux; cannot open GUI Terminal.",
+  SSH_DETECTED_NO_MULTIPLEXER: "SSH detected without tmux or zellij session; cannot open GUI Terminal.",
   TMUX_FORCED_NOT_AVAILABLE: "Forced --terminal=tmux but tmux is not available or not in tmux session.",
   TERMINAL_FORCED_NOT_AVAILABLE:
     "Forced --terminal=Terminal but Terminal.app is not available or not on macOS.",
