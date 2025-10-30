@@ -82,9 +82,14 @@ describe("createPlan", () => {
     expect(plan.exitCode).toBe(EXIT_CODES.USAGE_ERROR);
   });
 
-  it("returns error 73 when SSH detected without tmux", () => {
+  it("returns error 73 when SSH detected without multiplexer", () => {
     const options: Options = {};
-    const env: Environment = { ...mockEnv, inSSH: true, inTmux: false };
+    const env: Environment = {
+      ...mockEnv,
+      inSSH: true,
+      inTmux: false,
+      inZellij: false,
+    };
     const plan = createPlan("echo hi", options, env);
     expect(plan.type).toBe("error");
     expect(plan.exitCode).toBe(EXIT_CODES.SSH_GUI_INFEASIBLE);
@@ -93,6 +98,31 @@ describe("createPlan", () => {
   it("returns tmux plan when SSH detected but inside tmux", () => {
     const options: Options = {};
     const env: Environment = { ...mockEnv, inSSH: true, inTmux: true };
+    const plan = createPlan("echo hi", options, env);
+    expect(plan.type).toBe("tmux");
+  });
+
+  it("returns zellij plan when SSH detected but inside zellij", () => {
+    const options: Options = {};
+    const env: Environment = {
+      ...mockEnv,
+      inSSH: true,
+      inTmux: false,
+      inZellij: true,
+      zellijAvailable: true,
+    };
+    const plan = createPlan("echo hi", options, env);
+    expect(plan.type).toBe("zellij");
+  });
+
+  it("prefers tmux over zellij when SSH with both multiplexers", () => {
+    const options: Options = {};
+    const env: Environment = {
+      ...mockEnv,
+      inSSH: true,
+      inTmux: true,
+      inZellij: true,
+    };
     const plan = createPlan("echo hi", options, env);
     expect(plan.type).toBe("tmux");
   });
