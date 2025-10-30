@@ -15,7 +15,7 @@ export interface Options {
   dryRun?: boolean;
 }
 
-export type SplitDirection = "h" | "v";
+export type SplitDirection = "left" | "right" | "up" | "down";
 
 export interface Plan {
   type: "tmux" | "terminal" | "zellij" | "error";

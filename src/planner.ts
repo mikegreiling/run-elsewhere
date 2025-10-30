@@ -150,11 +150,17 @@ function planZellij(
 }
 
 function getSplitDirection(options: Options): SplitDirection {
-  if (options.left || options.right) {
-    return "h"; // horizontal split
+  if (options.left) {
+    return "left";
   }
-  if (options.up || options.down) {
-    return "v"; // vertical split
+  if (options.right) {
+    return "right";
   }
-  return DEFAULT_SPLIT_DIRECTION; // default to horizontal (right)
+  if (options.up) {
+    return "up";
+  }
+  if (options.down) {
+    return "down";
+  }
+  return DEFAULT_SPLIT_DIRECTION;
 }

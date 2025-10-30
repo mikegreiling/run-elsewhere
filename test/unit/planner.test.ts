@@ -155,51 +155,83 @@ describe("createPlan", () => {
     expect(plan.exitCode).toBe(EXIT_CODES.NO_VIABLE_BACKEND);
   });
 
-  it("uses horizontal split (-h) for left/right", () => {
+  it("splits left", () => {
     const options: Options = { left: true };
     const env: Environment = { ...mockEnv, inTmux: true };
     const plan = createPlan("echo hi", options, env);
     expect(plan.type).toBe("tmux");
-    expect(plan.direction).toBe("h");
+    expect(plan.direction).toBe("left");
   });
 
-  it("uses vertical split (-v) for up/down", () => {
+  it("splits right", () => {
+    const options: Options = { right: true };
+    const env: Environment = { ...mockEnv, inTmux: true };
+    const plan = createPlan("echo hi", options, env);
+    expect(plan.type).toBe("tmux");
+    expect(plan.direction).toBe("right");
+  });
+
+  it("splits up", () => {
     const options: Options = { up: true };
     const env: Environment = { ...mockEnv, inTmux: true };
     const plan = createPlan("echo hi", options, env);
     expect(plan.type).toBe("tmux");
-    expect(plan.direction).toBe("v");
+    expect(plan.direction).toBe("up");
   });
 
-  it("defaults to horizontal split", () => {
+  it("splits down", () => {
+    const options: Options = { down: true };
+    const env: Environment = { ...mockEnv, inTmux: true };
+    const plan = createPlan("echo hi", options, env);
+    expect(plan.type).toBe("tmux");
+    expect(plan.direction).toBe("down");
+  });
+
+  it("defaults to right split", () => {
     const options: Options = {};
     const env: Environment = { ...mockEnv, inTmux: true };
     const plan = createPlan("echo hi", options, env);
     expect(plan.type).toBe("tmux");
-    expect(plan.direction).toBe("h");
+    expect(plan.direction).toBe("right");
   });
 
-  it("zellij plan uses horizontal split for left/right", () => {
+  it("zellij plan splits left", () => {
+    const options: Options = { left: true };
+    const env: Environment = { ...mockEnv, inZellij: true };
+    const plan = createPlan("echo hi", options, env);
+    expect(plan.type).toBe("zellij");
+    expect(plan.direction).toBe("left");
+  });
+
+  it("zellij plan splits right", () => {
     const options: Options = { right: true };
     const env: Environment = { ...mockEnv, inZellij: true };
     const plan = createPlan("echo hi", options, env);
     expect(plan.type).toBe("zellij");
-    expect(plan.direction).toBe("h");
+    expect(plan.direction).toBe("right");
   });
 
-  it("zellij plan uses vertical split for up/down", () => {
+  it("zellij plan splits up", () => {
+    const options: Options = { up: true };
+    const env: Environment = { ...mockEnv, inZellij: true };
+    const plan = createPlan("echo hi", options, env);
+    expect(plan.type).toBe("zellij");
+    expect(plan.direction).toBe("up");
+  });
+
+  it("zellij plan splits down", () => {
     const options: Options = { down: true };
     const env: Environment = { ...mockEnv, inZellij: true };
     const plan = createPlan("echo hi", options, env);
     expect(plan.type).toBe("zellij");
-    expect(plan.direction).toBe("v");
+    expect(plan.direction).toBe("down");
   });
 
-  it("zellij plan defaults to horizontal split", () => {
+  it("zellij plan defaults to right split", () => {
     const options: Options = {};
     const env: Environment = { ...mockEnv, inZellij: true };
     const plan = createPlan("echo hi", options, env);
     expect(plan.type).toBe("zellij");
-    expect(plan.direction).toBe("h");
+    expect(plan.direction).toBe("right");
   });
 });
