@@ -1,5 +1,7 @@
+import type { SupportedTerminal } from "./detect/terminal.js";
+
 export interface Options {
-  terminal?: "tmux" | "Terminal" | "zellij";
+  terminal?: "tmux" | "Terminal" | "zellij" | "iTerm2" | "kitty" | "Ghostty" | "Warp";
   pane?: boolean;
   tab?: boolean;
   window?: boolean;
@@ -17,12 +19,21 @@ export interface Options {
 
 export type SplitDirection = "left" | "right" | "up" | "down";
 
+export type BackendType = "tmux" | "terminal" | "zellij" | "iTerm2" | "kitty" | "Ghostty" | "Warp" | "error";
+
+export type TargetType = "pane" | "tab" | "window";
+
 export interface Plan {
-  type: "tmux" | "terminal" | "zellij" | "error";
+  type: BackendType;
   command?: string;
   direction?: SplitDirection;
+  target?: TargetType; // Requested target (pane/tab/window)
+  targetRequested?: TargetType; // What user explicitly asked for
+  targetDegraded?: boolean; // Was target degraded due to unsupported feature?
   exitCode?: number;
   error?: string;
+  exactCommand?: string; // The exact CLI/AppleScript command that will run
+  alternatives?: string[]; // Other backends that could work
 }
 
 export interface Result {
@@ -40,4 +51,21 @@ export interface Environment {
   tmuxAvailable: boolean;
   inZellij: boolean;
   zellijAvailable: boolean;
+
+  // Phase 2: New backend detection
+  inITerm2: boolean;
+  iTerm2Available: boolean;
+  inKitty: boolean;
+  kittyAvailable: boolean;
+  inGhostty: boolean;
+  ghosttyAvailable: boolean;
+  inWarp: boolean;
+  warpAvailable: boolean;
+
+  // VSCode/Cursor (special - unsupported terminals)
+  inVSCode: boolean;
+  inCursor: boolean;
+
+  // Detected current terminal
+  currentTerminal: SupportedTerminal;
 }
