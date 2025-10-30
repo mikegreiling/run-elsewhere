@@ -22,16 +22,20 @@ export function runInZellijPane(command: string, direction: SplitDirection): voi
 }
 
 /**
- * Map our SplitDirection to zellij direction
- * h (horizontal) → right
- * v (vertical) → down
+ * Map our SplitDirection to zellij direction name
+ * Zellij supports: Left, Right, Up, Down
  */
 function mapSplitDirection(direction: SplitDirection): string {
-  if (direction === "h") {
-    return "right";
+  switch (direction) {
+    case "left":
+      return "Left";
+    case "right":
+      return "Right";
+    case "up":
+      return "Up";
+    case "down":
+      return "Down";
   }
-  // v → down
-  return "down";
 }
 
 /**

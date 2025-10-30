@@ -7,7 +7,7 @@ export const EXIT_CODES = {
   NO_VIABLE_BACKEND: 75,
 } as const;
 
-export const DEFAULT_SPLIT_DIRECTION = "h" as const; // right/horizontal
+export const DEFAULT_SPLIT_DIRECTION = "right" as const;
 
 export const ERROR_MESSAGES = {
   NO_COMMAND_PROVIDED: "No command provided. Use -c, --, or stdin.",
