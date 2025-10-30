@@ -1,3 +1,10 @@
+## [0.2.1](https://github.com/mikegreiling/run-elsewhere/compare/v0.2.0...v0.2.1) (2025-10-30)
+
+
+### Bug Fixes
+
+* prevent AppleScript permission prompts in remote sessions ([77290af](https://github.com/mikegreiling/run-elsewhere/commit/77290afb685d00be7e1a3ba29aca6f325bd88742))
+
 # [0.2.0](https://github.com/mikegreiling/run-elsewhere/compare/v0.1.0...v0.2.0) (2025-10-30)
 
 
