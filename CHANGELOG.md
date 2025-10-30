@@ -1,3 +1,16 @@
+# [0.2.0](https://github.com/mikegreiling/run-elsewhere/compare/v0.1.0...v0.2.0) (2025-10-30)
+
+
+### Bug Fixes
+
+* support all four split directions (left, right, up, down) ([ff859fe](https://github.com/mikegreiling/run-elsewhere/commit/ff859feb4221a44f14c11986759e582c18ca5df3))
+* use AppleScript to detect Terminal.app location ([49bc47c](https://github.com/mikegreiling/run-elsewhere/commit/49bc47c6798c75bc780147a632aa0161f3371e34))
+
+
+### Features
+
+* add zellij terminal multiplexer support ([16ba904](https://github.com/mikegreiling/run-elsewhere/commit/16ba9040e83288206f72cdbb5c48b8090c077ba9))
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
