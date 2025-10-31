@@ -4,7 +4,7 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { detectEnvironment } from "./detect/env.js";
 import { resolveCommand } from "./command.js";
-import { createPlan } from "./planner.js";
+import { createPlanWithInteractive } from "./planner/interactive.js";
 import { EXIT_CODES } from "./constants.js";
 import type { Options, BackendType, TargetType } from "./types.js";
 import type { Backend } from "./run/backend.js";
@@ -180,8 +180,8 @@ async function main(): Promise<void> {
     // Detect environment
     const env = detectEnvironment();
 
-    // Create plan
-    const plan = createPlan(command, options, env);
+    // Create plan (with interactive selection if needed)
+    const plan = await createPlanWithInteractive(command, options, env);
 
     // If --dry-run, output plan as JSON and exit
     if (options.dryRun) {
