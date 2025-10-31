@@ -1,113 +1,121 @@
 # Roadmap
 
-## Phase 1 (Current)
+## Phase 1 ✅ COMPLETE
 
-✅ **Complete**
+Minimal viable product with core functionality.
 
-Minimal viable product with:
-- tmux pane splitting
+**Delivered:**
+- tmux pane splitting (all 4 directions)
 - Terminal.app window creation
 - Environment detection (SSH, tmux, macOS)
 - CLI with argument parsing
 - Exit codes (0, 1, 64, 70, 73, 75)
 - --dry-run mode with JSON output
-- Unit tests
+- Unit tests (49 tests)
 - Documentation
 
 **Supported terminals:**
-- tmux (split pane only)
-- Terminal.app (new window)
+- tmux (pane splitting)
+- Terminal.app (new windows)
 
-## Phase 2 (Planned)
+## Phase 2 ✅ COMPLETE
 
-### Additional Terminal Backends
+Expanded backend support with interactive selection and target types.
 
-- **iTerm2** - Tab and window support (with AppleScript/Python integration)
-- **kitty** - Window/tab support (remote control protocol)
-- **zellij** - Pane/window support (CLI interface)
-- **Ghostty** - Support via CLI or AppleScript
-- **Warp** - Terminal support (TBD)
+**Delivered:**
 
-### Core Features
+### New Backends (5 added)
+- ✅ **zellij** - Pane support with write-chars workflow
+- ✅ **iTerm2** - Tab & window support via AppleScript
+- ✅ **kitty** - Tab & window support via CLI remote control
+- ✅ **Ghostty** - Tab & window support via System Events (experimental)
+- ✅ **Warp** - Tab & window support via System Events (experimental)
 
-- `--tab` support for all applicable terminals
-- `-i, --interactive` mode for prompting when multiple options available
-- Better error messages with recovery suggestions
-- Config file support (~/.elsewhere/config.json or similar)
-- Aliases for common commands
+### Features
+- ✅ **Target types** - `--pane`, `--tab`, `--window` flags
+- ✅ **Interactive mode** (`-i`) - Menu-based backend selection with enquirer
+- ✅ **Auto-select mode** (`-y`) - Skip prompts, use first available
+- ✅ **Target degradation** - Automatic fallback (pane→tab→window)
+- ✅ **Strict mode** (`--no`) - Fail instead of degrading
+- ✅ **Terminal detection** - Auto-detect current terminal via $TERM_PROGRAM
+- ✅ **Enhanced --dry-run** - Human-readable output + exact commands
+- ✅ **Backend abstraction** - Polymorphic interface for all backends
+- ✅ **6-stage planner** - Sophisticated backend selection pipeline
+- ✅ **170 unit tests** - Comprehensive test coverage
 
-### Robustness
+### Architecture
+- ✅ Backend interface with capability declarations
+- ✅ Multi-stage planner (validate → detect → filter → select → resolve → execute)
+- ✅ Target resolution system with degradation rules
+- ✅ Terminal detection (multi-method: env vars, parent process)
+- ✅ Comprehensive documentation (ARCHITECTURE, BACKENDS, TROUBLESHOOTING)
 
-- Proper signal handling (SIGTERM, SIGINT)
-- Session persistence checking
-- Better timeout handling
-- Integration tests for each terminal backend
-- CI/CD pipeline for automated testing
+## Phase 3 (Future)
 
-### Nice-to-haves
+### Linux Support
 
-- Shell completion (bash, zsh, fish)
-- Logging/debugging mode
-- Support for environment variable expansion
-- Window/pane naming
-- Hook system for custom terminal setup
+Add support for Linux terminal emulators:
+- **wezterm** - Cross-platform, tab/pane support
+- **gnome-terminal** - Tab support via `gnome-terminal --tab`
+- **konsole** - KDE terminal with tab support
+- **xterm** - Classic X11 terminal
+- **alacritty** - Detect but route to multiplexer (no tabs/windows API)
 
-## Architecture for Phase 2
+### Windows Support
 
-### Terminal Abstraction
+- **Windows Terminal** - Tab support via `wt.exe` CLI
+- **ConEmu** - Tab support if detectable
+- **PowerShell** - New window support
 
-Current structure for Phase 1:
-```
-run/
-  tmux.ts         # tmux implementation
-  macos/
-    terminal.ts   # Terminal.app implementation
-```
+### Enhanced Features
 
-Phase 2 structure (proposed):
-```
-run/
-  runner.ts           # Base interface/abstract class
-  tmux.ts             # tmux runner
-  applescript.ts      # Base for AppleScript-based terminals
-  macos/
-    terminal.ts       # Terminal.app
-    iterm2.ts         # iTerm2
-    ghostty.ts        # Ghostty
-  python/
-    iterm2_python.ts  # iTerm2 Python bridge (for more advanced features)
-  cli/
-    kitty.ts          # kitty
-    zellij.ts         # zellij
-```
+- **Config file** - `~/.elsewhere/config.json` for:
+  - Default backend preference
+  - Per-directory overrides
+  - Custom backend aliases
+- **Shell completion** - bash, zsh, fish
+- **Logging/debug mode** - `--debug` flag for troubleshooting
+- **Session naming** - Name panes/tabs/windows: `--name "API Server"`
+- **Working directory** - `--cwd /path` to set starting directory
+- **Environment variables** - `--env KEY=VALUE` to pass to new context
 
-### Terminal Detection
+### GUI Terminal Pane Support
 
-Phase 2 will add detection for:
-- iTerm2 (check `ITERM_SESSION_ID` env var, look for app bundle)
-- kitty (check `KITTY_WINDOW_ID`, `KITTY_LISTEN_ON`)
-- zellij (check `ZELLIJ`, look for `zellij` binary)
-- Ghostty (check `GHOSTTY_RESOURCES_DIR`)
-- Warp (check environment or bundle)
+- **iTerm2 panes** - AppleScript-based split pane support
+- **kitty panes** - Layout system via `kitty @ launch --location=hsplit`
+- **wezterm panes** - Native split pane support
 
-### Environment-aware defaults
+### Advanced Features
 
-- SSH + only iTerm2 available → use iTerm2 (can work remotely)
-- SSH + only kitty available → use kitty if KITTY_LISTEN_ON is set
-- SSH + only zellij available → use zellij
-- Local + multiple options → offer choice or use config preference
+- **Plugin system** - Custom backend implementations
+- **Homebrew tap** - `brew install elsewhere`
+- **nix/asdf plugins** - Additional package managers
+- **Command history** - Remember recent commands for quick re-run
+- **Session management** - List, attach, kill elsewhere-created contexts
 
-## Technical Debt & Improvements
+## Technical Debt
 
-- [ ] Better type safety for shell escaping
-- [ ] Utility functions for common terminal operations
-- [ ] Mocking framework for reliable integration tests
-- [ ] Logging framework for debugging terminal operations
-- [ ] Performance profiling for command startup time
+### Priority 1 (Address Soon)
+- None currently - Phase 2 refactoring addressed architectural concerns
 
-## Open Questions
+### Priority 2 (Nice to Have)
+- Extract shared escape utilities to `src/utils/escape.ts`
+- Consider deprecating legacy exports (runInTmuxPane, runInZellijPane)
+- Populate Plan.alternatives field (or remove it)
 
-1. Should Phase 2 support switching between terminals with a preference system?
-2. How should we handle nested terminal scenarios (e.g., tmux inside SSH inside iTerm2)?
-3. Should we support custom terminal backend plugins?
-4. How to handle terminal-specific features gracefully (some terminals don't support tabs)?
+### Priority 3 (Future)
+- Integration tests with real terminals (requires GUI environment)
+- Performance profiling for large command strings
+- Support for custom AppleScript snippets per backend
+
+## Contributing
+
+Interested in helping with Phase 3 features? See [DEV.md](DEV.md) for development setup.
+
+### High-Impact Contributions
+
+- **Linux backend implementations** - wezterm, gnome-terminal
+- **Windows Terminal support** - wt.exe integration
+- **Shell completion** - bash/zsh/fish autocompletion
+- **Config file support** - User preferences system
+- **Integration tests** - Automated GUI testing setup

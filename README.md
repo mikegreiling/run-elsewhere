@@ -1,6 +1,10 @@
 # run-elsewhere
 
-A Node/TypeScript CLI utility for running commands in new terminal contexts. Split a tmux pane, open a Terminal.app window, or auto-detect the best option.
+A TypeScript CLI utility for running commands in new terminal contexts. Automatically detects your environment and chooses the best backend—or let you pick interactively.
+
+**Supported backends:**
+Terminal multiplexers: **tmux** • **zellij**
+macOS terminals: **Terminal.app** • **iTerm2** • **kitty** • **Ghostty** • **Warp**
 
 ## Installation
 
@@ -8,6 +12,8 @@ A Node/TypeScript CLI utility for running commands in new terminal contexts. Spl
 
 ```bash
 npm install -g run-elsewhere
+# or
+pnpm add -g run-elsewhere
 ```
 
 ### Use without installing
@@ -18,148 +24,303 @@ npx -y run-elsewhere -c "your command here"
 
 ## Quick Start
 
-### Basic usage
+### Automatic backend selection
+
+The CLI automatically selects the best terminal backend based on your environment:
 
 ```bash
-# Run command in new tmux pane to the right (default)
+# If in tmux → creates new pane
+# If in zellij → creates new pane
+# Otherwise → opens new window in your current terminal (or Terminal.app)
 elsewhere -c "npm run dev"
-
-# Run in new pane to the left
-elsewhere --left -c "npm run dev"
-
-# Run in new Terminal.app window
-elsewhere --terminal=Terminal -c "npm run dev"
-
-# Pipe a command
-echo "npm run test" | elsewhere -p
-
-# Use -- syntax
-elsewhere -- npm run build
 ```
 
-### --dry-run mode
+### Split directions (tmux/zellij)
 
-See what would be executed without actually running it:
+```bash
+elsewhere -c "npm run dev"              # right (default)
+elsewhere --left -c "npm run dev"       # left
+elsewhere --up -c "npm run dev"         # up
+elsewhere --down -c "npm run dev"       # down
+```
+
+### Force specific backend
+
+```bash
+elsewhere --terminal=tmux -c "htop"
+elsewhere --terminal=iTerm2 -c "npm run dev"
+elsewhere --terminal=kitty -c "npm run test"
+```
+
+### Target types
+
+```bash
+elsewhere --pane -c "npm run dev"       # pane (tmux/zellij)
+elsewhere --tab -c "npm run dev"        # tab (iTerm2, kitty, Ghostty, Warp)
+elsewhere --window -c "npm run dev"     # window (all terminals)
+```
+
+### Interactive mode
+
+Let the CLI show you all available backends:
+
+```bash
+elsewhere -i -c "npm run dev"
+# Shows menu:
+# > Terminal.app (window)
+#   iTerm2 (tab/window)
+#   kitty (tab/window)
+```
+
+### Auto-select mode
+
+Skip interactive prompts and use first available:
+
+```bash
+elsewhere -y -c "npm run dev"
+```
+
+### Command input methods
+
+```bash
+# Method 1: -c flag (recommended)
+elsewhere -c "npm run dev"
+
+# Method 2: -- syntax
+elsewhere -- npm run dev
+
+# Method 3: stdin pipe
+echo "npm run test" | elsewhere
+```
+
+### Dry-run mode
+
+See what would be executed without running it:
 
 ```bash
 elsewhere --dry-run -c "echo hello"
 ```
 
 Output:
-```json
+```
+Backend: tmux
+Target: pane
+Direction: right
+
+Exact command:
+tmux split-window -h && tmux send-keys "echo hello" Enter
+
+Full plan:
 {
   "type": "tmux",
   "command": "echo hello",
-  "direction": "h"
+  "direction": "right",
+  "target": "pane",
+  "exactCommand": "tmux split-window -h && tmux send-keys \"echo hello\" Enter"
 }
+```
+
+## Backends
+
+### Terminal Multiplexers
+
+| Backend | Supports | Notes |
+|---------|----------|-------|
+| **tmux** | pane | Requires active tmux session. All 4 split directions. |
+| **zellij** | pane | Requires active zellij session. All 4 split directions. |
+
+### macOS GUI Terminals
+
+| Backend | Supports | Notes |
+|---------|----------|-------|
+| **Terminal.app** | window | Native macOS terminal. Most reliable. |
+| **iTerm2** | tab, window | AppleScript-based. Pane support planned for future. |
+| **kitty** | tab, window | CLI-based via remote control protocol. |
+| **Ghostty** | tab, window | **Experimental.** Uses System Events (requires Accessibility permissions). |
+| **Warp** | tab, window | **Experimental.** Uses System Events (requires Accessibility permissions). |
+
+## How it Works
+
+### Automatic Backend Selection
+
+When you run `elsewhere` without `--terminal`, it follows this priority:
+
+1. **If in multiplexer** → Use that multiplexer (tmux or zellij)
+2. **If multiplexer detected + SSH** → Use multiplexer only (GUI blocked)
+3. **If current terminal detected** → Use current terminal if supported
+4. **Otherwise** → Use first available: Terminal.app → kitty → iTerm2 → Ghostty → Warp
+
+### Target Degradation
+
+If you request a target type that a backend doesn't support, it automatically degrades:
+
+```bash
+# You request: --tab with Terminal.app
+# Result: Degrades to --window (with warning)
+
+# You request: --pane with iTerm2
+# Result: Degrades to --tab (with warning)
+```
+
+Use `--no` flag to prevent degradation (fails instead):
+
+```bash
+elsewhere --tab --no --terminal=Terminal -c "npm run dev"
+# Error: Terminal.app does not support tab targets
+```
+
+### SSH Session Handling
+
+When connected via SSH:
+
+- ✅ **tmux/zellij work** (if you're in a session)
+- ❌ **GUI terminals blocked** (can't open windows remotely)
+
+```bash
+# In SSH + tmux → works
+elsewhere -c "htop"
+
+# In SSH without multiplexer → error
+elsewhere -c "htop"
+# Error: SSH detected and not inside multiplexer; cannot open GUI Terminal
 ```
 
 ## CLI Reference
 
-### Flags
+### Options
 
-- `--terminal=NAME` - Force a specific terminal: `tmux` or `Terminal` (Phase 1 only)
-- `-p, --pane` - Require pane mode (tmux only)
-- `-w, --window` - Create new window (default for Terminal)
-- `-u, --up` - Split upward (tmux)
-- `-d, --down` - Split downward (tmux)
-- `-l, --left` - Split left (tmux, horizontal)
-- `-r, --right` - Split right (tmux, horizontal, default)
-- `-c, --command "CMD"` - Command to run
-- `--dry-run` - Print execution plan as JSON and exit
-- `-y, --yes, --no-tty` - Non-interactive mode (Phase 1 is always non-interactive)
-- `-h, --help` - Show help
-- `-v, --version` - Show version
+| Flag | Description |
+|------|-------------|
+| `--terminal=NAME` | Force backend: tmux, zellij, Terminal, iTerm2, kitty, Ghostty, Warp |
+| `-p, --pane` | Create in pane (tmux/zellij) |
+| `-t, --tab` | Create in tab (iTerm2, kitty, Ghostty, Warp) |
+| `-w, --window` | Create in window (all terminals) |
+| `-u, --up` | Split direction: up |
+| `-d, --down` | Split direction: down |
+| `-l, --left` | Split direction: left |
+| `-r, --right` | Split direction: right (default) |
+| `-i, --interactive` | Show interactive backend picker |
+| `-y, --yes, --no-tty` | Auto-select first available backend |
+| `--no` | Strict mode: fail if exact target unavailable |
+| `-c, --command "CMD"` | Command to run |
+| `--dry-run` | Print execution plan and exit |
+| `-h, --help` | Show help |
+| `-v, --version` | Show version |
 
-### Command source precedence
-
-The utility resolves the command to run in this order:
+### Command Precedence
 
 1. `-c "..."` flag (highest priority)
 2. Arguments after `--`
 3. Piped stdin (lowest priority)
 
-### Exit codes
+### Exit Codes
 
-- `0` - Success
-- `1` - Generic failure
-- `64` - Usage error (bad flags, no command)
-- `70` - Software/OS error (backend not available)
-- `73` - SSH without tmux (GUI Terminal not feasible)
-- `75` - No supported terminal available
+| Code | Meaning |
+|------|---------|
+| `0` | Success |
+| `1` | Generic failure |
+| `64` | Usage error (bad flags, no command) |
+| `70` | Software/OS error (backend not available) |
+| `73` | SSH without multiplexer (GUI Terminal not feasible) |
+| `75` | No supported terminal available |
 
-## How it works
+## Examples
 
-### Environment detection
-
-The utility automatically detects:
-
-- Whether you're inside a tmux session
-- Whether you're connected via SSH
-- Your OS (macOS, Linux, etc.)
-- Available terminal applications
-
-### Decision tree (Phase 1)
-
-1. **SSH/headless guard**
-   - If SSH detected and inside tmux → use tmux pane
-   - If SSH detected and NOT in tmux → error (can't open GUI Terminal)
-
-2. **Forced backend** (`--terminal=`)
-   - `tmux`: Must be in tmux session, error if not
-   - `Terminal`: macOS only, error if not available
-
-3. **Auto path** (no `--terminal` specified)
-   - Try tmux if available
-   - Fall back to Terminal.app on macOS
-   - Error if nothing available
-
-## Testing
-
-### Unit tests
+### Development Workflows
 
 ```bash
-npm test
+# Start dev server in new pane
+elsewhere -c "npm run dev"
+
+# Watch tests in pane to the left
+elsewhere --left -c "npm run test:watch"
+
+# Start multiple services
+elsewhere --up -c "npm run api" && \
+elsewhere --down -c "npm run worker"
 ```
 
-### Manual integration testing with tmux
+### SSH Development
 
 ```bash
-# Start a tmux session
-tmux new-session -d -s test
+# Must be in tmux or zellij
+ssh user@server
+tmux new-session
 
-# Run a command in that session
-tmux send-keys -t test "cd /path/to/run-elsewhere" Enter
-tmux send-keys -t test "elsewhere -c 'echo hello from elsewhere'" Enter
-
-# Check that the pane split happened
-tmux list-panes -t test
-
-# Kill the test session
-tmux kill-session -t test
+# Now you can split panes
+elsewhere -c "npm run dev"
+elsewhere --left -c "tail -f logs/app.log"
 ```
 
-### Manual integration testing with Terminal.app
+### Interactive Selection
 
 ```bash
-# On macOS, run the CLI to open a new Terminal window
-elsewhere -c "echo 'Hello from Terminal.app'"
+# Let me pick which terminal to use
+elsewhere -i -c "npm run dev"
 
-# A new Terminal window should open and execute the command
+# Shows:
+# ? Select terminal backend:
+#   ❯ Terminal.app (window) [detected]
+#     iTerm2 (tab/window)
+#     kitty (tab/window)
+#     Ghostty (tab/window) [experimental]
+#     Warp (tab/window) [experimental]
 ```
 
-## Phase 1 Limitations
+## Troubleshooting
 
-- **Terminal backends**: Only tmux and Terminal.app supported
-  - Phase 2 will add: iTerm2, kitty, zellij, Ghostty, Warp
-- **Tab mode**: `--tab` is not yet supported (Phase 2)
-- **Interactive mode**: `-i/--interactive` is a stub (Phase 2)
+### Ghostty/Warp: Permission Denied
 
-See [ROADMAP.md](docs/ROADMAP.md) for Phase 2 plans.
+Ghostty and Warp require **Accessibility permissions** because they use System Events for automation.
+
+**Fix:**
+1. Open System Settings → Privacy & Security → Accessibility
+2. Add your terminal application (e.g., Terminal.app, iTerm2)
+3. Try again
+
+### Terminal Not Detected
+
+If your terminal isn't auto-detected, force it explicitly:
+
+```bash
+elsewhere --terminal=iTerm2 -c "npm run dev"
+```
+
+### SSH: GUI Terminal Error
+
+GUI terminals don't work over SSH. Use tmux or zellij:
+
+```bash
+# Start tmux first
+tmux new-session
+
+# Now elsewhere works
+elsewhere -c "npm run dev"
+```
+
+### Target Degradation Warning
+
+If you see warnings about target degradation:
+
+```bash
+⚠ Terminal.app does not support tabs; degrading to window
+```
+
+Either:
+- Accept the degradation (works fine)
+- Use `--no` flag to fail instead: `elsewhere --tab --no -c "..."`
+- Switch to a backend that supports tabs: `elsewhere --terminal=iTerm2 --tab -c "..."`
 
 ## Development
 
-See [DEV.md](docs/DEV.md) for local development instructions.
+See [DEV.md](docs/DEV.md) for local development and contribution guidelines.
+
+### Related Documentation
+
+- [ARCHITECTURE.md](docs/ARCHITECTURE.md) - System design and internals
+- [BACKENDS.md](docs/BACKENDS.md) - Backend-specific details and limitations
+- [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) - Common issues and solutions
+- [ROADMAP.md](docs/ROADMAP.md) - Future plans and enhancements
 
 ## License
 
