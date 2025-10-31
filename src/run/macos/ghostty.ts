@@ -3,6 +3,15 @@ import type { BackendType, SplitDirection, TargetType } from "../../types.js";
 import type { Environment } from "../../types.js";
 import { executeAppleScript } from "../../utils/applescript.js";
 
+/**
+ * Ghostty backend implementation using System Events automation.
+ *
+ * Note: Ghostty currently lacks public scripting/automation APIs. This implementation
+ * uses macOS System Events to send keystrokes, which requires Accessibility permissions.
+ * This is a workaround until Ghostty provides official scriptability support.
+ *
+ * See: https://github.com/ghostty-org/ghostty/discussions/2353
+ */
 export class GhosttyBackend extends BaseBackend {
   name: BackendType = "Ghostty";
 
