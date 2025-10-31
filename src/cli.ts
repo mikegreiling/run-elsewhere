@@ -185,6 +185,26 @@ async function main(): Promise<void> {
 
     // If --dry-run, output plan as JSON and exit
     if (options.dryRun) {
+      // Format dry-run output with human-readable info + JSON
+      if (plan.type === "error") {
+        console.log(`Error: ${plan.error}`);
+        console.log(`Exit code: ${plan.exitCode}`);
+      } else {
+        const backend = plan.type === "terminal" ? "Terminal.app" : plan.type;
+        console.log(`Backend: ${backend}`);
+        console.log(`Target: ${plan.target}`);
+        if (plan.targetDegraded) {
+          console.log(`⚠ Target degraded from ${plan.targetRequested} to ${plan.target}`);
+        }
+        if (plan.direction) {
+          console.log(`Direction: ${plan.direction}`);
+        }
+        console.log("");
+        console.log("Exact command:");
+        console.log(plan.exactCommand);
+        console.log("");
+        console.log("Full plan:");
+      }
       console.log(JSON.stringify(plan, null, 2));
       process.exit(EXIT_CODES.SUCCESS);
     }
