@@ -5,16 +5,48 @@ import { hideBin } from "yargs/helpers";
 import { detectEnvironment } from "./detect/env.js";
 import { resolveCommand } from "./command.js";
 import { createPlan } from "./planner.js";
-import { runInTmuxPane } from "./run/tmux.js";
-import { runInTerminalApp } from "./run/macos/terminal.js";
-import { runInZellijPane } from "./run/zellij.js";
 import { EXIT_CODES } from "./constants.js";
-import type { Options } from "./types.js";
+import type { Options, BackendType, TargetType } from "./types.js";
+import type { Backend } from "./run/backend.js";
+import { TmuxBackend } from "./run/tmux.js";
+import { ZellijBackend } from "./run/zellij.js";
+import { TerminalBackend } from "./run/macos/terminal.js";
+import { ITerm2Backend } from "./run/macos/iterm2.js";
+import { KittyBackend } from "./run/cli/kitty.js";
+import { GhosttyBackend } from "./run/macos/ghostty.js";
+import { WarpBackend } from "./run/macos/warp.js";
 
 const packageJson = {
   name: "run-elsewhere",
   version: "0.1.0",
 };
+
+/**
+ * Get backend instance by type
+ */
+function getBackendInstance(backendType: BackendType): Backend {
+  switch (backendType) {
+    case "tmux":
+      return new TmuxBackend();
+    case "zellij":
+      return new ZellijBackend();
+    case "terminal":
+      return new TerminalBackend();
+    case "iTerm2":
+      return new ITerm2Backend();
+    case "kitty":
+      return new KittyBackend();
+    case "Ghostty":
+      return new GhosttyBackend();
+    case "Warp":
+      return new WarpBackend();
+    case "error":
+      throw new Error("Cannot execute error plan type");
+    default:
+      const _exhaustive: never = backendType;
+      throw new Error(`Unknown backend type: ${String(_exhaustive)}`);
+  }
+}
 
 async function main(): Promise<void> {
   try {
@@ -23,67 +55,67 @@ async function main(): Promise<void> {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       .option("terminal", {
         type: "string",
-        description: "Terminal backend to use: 'tmux', 'zellij', or 'Terminal'",
+        description: "Terminal backend: tmux, zellij, Terminal, iTerm2, kitty, Ghostty, or Warp",
         alias: "T",
       })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       .option("pane", {
         type: "boolean",
-        description: "Require pane (tmux only)",
+        description: "Create in pane (tmux/zellij)",
         alias: "p",
       })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       .option("tab", {
         type: "boolean",
-        description: "[Phase 2] Create new tab",
+        description: "Create in tab (iTerm2, kitty, Ghostty, Warp)",
         alias: "t",
       })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       .option("window", {
         type: "boolean",
-        description: "Create new window",
+        description: "Create in window (all terminals)",
         alias: "w",
       })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       .option("up", {
         type: "boolean",
-        description: "[tmux] Split upward",
+        description: "Split direction: up",
         alias: "u",
       })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       .option("down", {
         type: "boolean",
-        description: "[tmux] Split downward",
+        description: "Split direction: down",
         alias: "d",
       })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       .option("left", {
         type: "boolean",
-        description: "[tmux] Split left",
+        description: "Split direction: left",
         alias: "l",
       })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       .option("right", {
         type: "boolean",
-        description: "[tmux] Split right",
+        description: "Split direction: right (default)",
         alias: "r",
       })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       .option("yes", {
         type: "boolean",
-        description: "Non-interactive mode",
+        description: "Auto-select first available backend",
         alias: ["y", "no-tty"],
       })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       .option("interactive", {
         type: "boolean",
-        description: "[Phase 2] Interactive mode",
+        description: "Show interactive backend picker",
         alias: "i",
       })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       .option("no", {
         type: "boolean",
-        description: "[Phase 2] Dry-run without executing",
+        description: "Strict mode: fail if exact target unavailable",
       })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       .option("command", {
@@ -131,7 +163,7 @@ async function main(): Promise<void> {
       !process.stdin.isTTY
     );
     const options: Options = {
-      terminal: argv.terminal as "tmux" | "Terminal" | "zellij" | undefined,
+      terminal: argv.terminal as "tmux" | "Terminal" | "zellij" | "iTerm2" | "kitty" | "Ghostty" | "Warp" | undefined,
       pane: argv.pane,
       tab: argv.tab,
       window: argv.window,
@@ -163,27 +195,20 @@ async function main(): Promise<void> {
       process.exit(plan.exitCode ?? EXIT_CODES.GENERIC_ERROR);
     }
 
-    // Execute plan
-    if (plan.type === "tmux") {
-      if (!plan.command || !plan.direction) {
-        throw new Error("Invalid tmux plan: missing command or direction");
-      }
-      runInTmuxPane(plan.command, plan.direction);
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    } else if (plan.type === "terminal") {
-      if (!plan.command) {
-        throw new Error("Invalid terminal plan: missing command");
-      }
-      runInTerminalApp(plan.command);
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    } else if (plan.type === "zellij") {
-      if (!plan.command || !plan.direction) {
-        throw new Error("Invalid zellij plan: missing command or direction");
-      }
-      runInZellijPane(plan.command, plan.direction);
-    } else {
-      const _exhaustive: never = plan.type;
-      throw new Error(`Unknown plan type: ${String(_exhaustive)}`);
+    // Execute plan using backend interface
+    if (!plan.command || !plan.target) {
+      throw new Error("Invalid plan: missing command or target");
+    }
+
+    const backend = getBackendInstance(plan.type as BackendType);
+    const direction = plan.direction;
+
+    // Execute the command through the backend
+    try {
+      backend.run(plan.target as TargetType, plan.command, direction);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      throw new Error(`Backend execution failed: ${errorMessage}`);
     }
 
     process.exit(EXIT_CODES.SUCCESS);
