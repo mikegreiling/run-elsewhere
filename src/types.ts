@@ -27,13 +27,12 @@ export interface Plan {
   type: BackendType;
   command?: string;
   direction?: SplitDirection;
-  target?: TargetType; // Requested target (pane/tab/window)
-  targetRequested?: TargetType; // What user explicitly asked for
+  target?: TargetType; // Resolved target (pane/tab/window)
+  targetRequested?: TargetType; // What user explicitly requested
   targetDegraded?: boolean; // Was target degraded due to unsupported feature?
   exitCode?: number;
   error?: string;
   exactCommand?: string; // The exact CLI/AppleScript command that will run
-  alternatives?: string[]; // Other backends that could work
 }
 
 export interface Result {
