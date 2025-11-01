@@ -90,12 +90,13 @@ export function createPlan(
   }
 
   // Stage 4: Select backend
-  // For now: forced (if --terminal), or auto (first available), or interactive (Phase 2d)
+  // Three modes: forced (--terminal), auto (first available), or interactive (-i)
+  // Note: Interactive mode is handled by createPlanWithInteractive() wrapper
   if (options.interactive) {
     return {
       type: "error",
       exitCode: EXIT_CODES.USAGE_ERROR,
-      error: "Interactive mode not yet implemented (Phase 2d). Please use -y/--yes or specify --terminal",
+      error: "Interactive mode must be called via createPlanWithInteractive(). This is a programming error.",
     };
   }
 
@@ -134,7 +135,7 @@ export function createPlan(
       error: ERROR_MESSAGES.NO_SUPPORTED_TERMINAL,
     };
   } else {
-    // Auto-select first (with menu planned for Phase 2d)
+    // Auto-select first available
     selectedBackend = viableBackends[0];
   }
 
@@ -174,7 +175,7 @@ export function createPlan(
  * Filter backends to only those that are viable in the current context.
  *
  * SSH/Remote Guard: If in SSH but not in multiplexer, block GUI backends
- * VSCode/Cursor: If detected, could route to system terminal (Phase 2)
+ * VSCode/Cursor: Treated as unsupported terminals (will trigger interactive menu or auto-select)
  */
 function filterViableBackends(backends: Backend[], env: Environment): Backend[] {
   // SSH/remote guard: if in SSH/Mosh but not in multiplexer, only allow multiplexers
@@ -183,9 +184,8 @@ function filterViableBackends(backends: Backend[], env: Environment): Backend[] 
     return backends.filter((b) => b.name === "tmux" || b.name === "zellij");
   }
 
-  // VSCode/Cursor: if detected but not in multiplexer, could show menu
-  // For now, proceed with system terminals
-  // Phase 2d will add interactive menu
+  // VSCode/Cursor detected terminals are handled by interactive menu or auto-selection
+  // The detection helps with context hints in the menu
 
   return backends;
 }

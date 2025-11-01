@@ -11,7 +11,7 @@ const mockEnv: Environment = {
   tmuxAvailable: true,
   inZellij: false,
   zellijAvailable: true,
-  // Phase 2 new fields
+  // Additional backend fields
   inITerm2: false,
   iTerm2Available: false,
   inKitty: false,
@@ -33,9 +33,9 @@ describe("createPlan", () => {
     expect(plan.exitCode).toBe(EXIT_CODES.USAGE_ERROR);
   });
 
-  it("degrades --tab to window when using Terminal.app in Phase 2", () => {
-    // In Phase 2, --tab is supported. When no tab-supporting backend available,
-    // Terminal.app is used and target degrades tab → window
+  it("degrades --tab to window when using Terminal.app", () => {
+    // --tab is supported, but Terminal.app only supports windows
+    // Target degrades: tab → window
     const options: Options = { tab: true };
     const plan = createPlan("echo hi", options, mockEnv);
     expect(plan.type).toBe("terminal");

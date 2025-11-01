@@ -2,6 +2,7 @@ import { BaseBackend, type BackendCapabilities, type DryRunInfo } from "../backe
 import type { BackendType, SplitDirection, TargetType } from "../../types.js";
 import type { Environment } from "../../types.js";
 import { executeAppleScript } from "../../utils/applescript.js";
+import { escapeForAppleScript } from "../../utils/escape.js";
 
 export class TerminalBackend extends BaseBackend {
   name: BackendType = "terminal";
@@ -59,12 +60,4 @@ export class TerminalBackend extends BaseBackend {
 export function runInTerminalApp(command: string): void {
   const backend = new TerminalBackend();
   backend.runWindow(command);
-}
-
-/**
- * Escape a string for use in AppleScript
- */
-function escapeForAppleScript(str: string): string {
-  // Escape backslashes first, then double quotes
-  return str.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 }

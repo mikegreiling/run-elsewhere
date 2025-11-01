@@ -52,7 +52,7 @@ export interface Environment {
   inZellij: boolean;
   zellijAvailable: boolean;
 
-  // Phase 2: New backend detection
+  // Additional backend detection
   inITerm2: boolean;
   iTerm2Available: boolean;
   inKitty: boolean;

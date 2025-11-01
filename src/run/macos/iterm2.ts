@@ -2,6 +2,7 @@ import { BaseBackend, type BackendCapabilities, type DryRunInfo } from "../backe
 import type { BackendType, SplitDirection, TargetType } from "../../types.js";
 import type { Environment } from "../../types.js";
 import { executeAppleScript } from "../../utils/applescript.js";
+import { escapeForAppleScript } from "../../utils/escape.js";
 
 export class ITerm2Backend extends BaseBackend {
   name: BackendType = "iTerm2";
@@ -102,12 +103,4 @@ tell application "iTerm"
 end tell
     `.trim();
   }
-}
-
-/**
- * Escape a string for use in AppleScript
- */
-function escapeForAppleScript(str: string): string {
-  // Escape backslashes first, then double quotes
-  return str.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 }

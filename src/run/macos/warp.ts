@@ -1,7 +1,8 @@
 import { BaseBackend, type BackendCapabilities, type DryRunInfo } from "../backend.js";
-import type { BackendType, SplitDirection, TargetType } from "../../types.js";
+import type { BackendType, SplitDirection, TargetType} from "../../types.js";
 import type { Environment } from "../../types.js";
 import { executeAppleScript } from "../../utils/applescript.js";
+import { escapeForAppleScript } from "../../utils/escape.js";
 
 export class WarpBackend extends BaseBackend {
   name: BackendType = "Warp";
@@ -97,12 +98,4 @@ end tell
 
     executeAppleScript(appleScript);
   }
-}
-
-/**
- * Escape a string for use in AppleScript
- */
-function escapeForAppleScript(str: string): string {
-  // Escape backslashes first, then double quotes
-  return str.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 }
