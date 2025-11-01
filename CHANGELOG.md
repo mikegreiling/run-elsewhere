@@ -1,3 +1,17 @@
+# [0.3.0](https://github.com/mikegreiling/run-elsewhere/compare/v0.2.3...v0.3.0) (2025-11-01)
+
+
+### Bug Fixes
+
+* resolve all ESLint errors and update version handling ([8176fc2](https://github.com/mikegreiling/run-elsewhere/commit/8176fc23ac9cc12070b29156b07c3e48aa743f6a))
+
+
+### Features
+
+* add Phase 2a foundation - terminal detection and backend abstraction ([8ef0e6c](https://github.com/mikegreiling/run-elsewhere/commit/8ef0e6cfe4f4c789642b09f8a72587b1816c4b2a))
+* implement interactive backend selection menu (Phase 2d) ([75606cd](https://github.com/mikegreiling/run-elsewhere/commit/75606cd1e725678c27af7db5d590605cd9b0e6dc))
+* implement multi-stage planner with target resolution (Phase 2c) ([7d9b566](https://github.com/mikegreiling/run-elsewhere/commit/7d9b5667af2d0028fd4f16f665b76b844f6a5da0))
+
 ## [0.2.3](https://github.com/mikegreiling/run-elsewhere/compare/v0.2.2...v0.2.3) (2025-10-30)
 
 
