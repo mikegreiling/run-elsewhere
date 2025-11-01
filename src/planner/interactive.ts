@@ -1,4 +1,4 @@
-import type { Environment, Options, Plan } from "../types.js";
+import type { Environment, Options, Plan, BackendType } from "../types.js";
 import { createPlan } from "../planner.js";
 import type { Backend } from "../run/backend.js";
 import { selectBackendInteractive } from "../interactive/menu.js";
@@ -38,9 +38,11 @@ export async function createPlanWithInteractive(
       const selection = await selectBackendInteractive(backends, env);
 
       // Force the selected backend by updating options
+      // Type assertion is safe here because selection.backend.name cannot be "error"
+      const backendName = selection.backend.name as Exclude<BackendType, "error">;
       const optionsWithForced: Options = {
         ...options,
-        terminal: selection.backend.name as any,
+        terminal: backendName,
         // If menu selected a target, use it
         ...(selection.target && { [selection.target]: true }),
       };

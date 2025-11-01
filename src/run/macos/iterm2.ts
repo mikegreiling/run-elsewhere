@@ -19,7 +19,7 @@ export class ITerm2Backend extends BaseBackend {
     return env.isMacOS && env.iTerm2Available;
   }
 
-  runPane(command: string, direction: SplitDirection): void {
+  runPane(_command: string, _direction: SplitDirection): void {
     throw new Error(
       "iTerm2 pane support not yet implemented. Please use --tab or --window instead. " +
         "Pane support is planned for a future iteration."
@@ -68,7 +68,7 @@ end tell
     }
   }
 
-  getDryRunInfo(target: TargetType, command: string, direction?: SplitDirection): DryRunInfo {
+  getDryRunInfo(target: TargetType, command: string, _direction?: SplitDirection): DryRunInfo {
     const description = this.getDescription(target);
     const formattedCommand = this.formatCommandForDescription(command);
     const appleScript = this.generateAppleScript(command);

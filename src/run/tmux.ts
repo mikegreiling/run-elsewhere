@@ -36,18 +36,16 @@ export class TmuxBackend extends BaseBackend {
     }
   }
 
-  runTab(command: string): void {
+  runTab(_command: string): void {
     throw new Error("tmux does not support tab targets. Use pane instead.");
   }
 
-  runWindow(command: string): void {
+  runWindow(_command: string): void {
     throw new Error("tmux does not support window targets. Use pane instead.");
   }
 
   getDryRunInfo(target: TargetType, command: string, direction?: SplitDirection): DryRunInfo {
-    if (!direction) {
-      direction = "right"; // default
-    }
+    direction ??= "right"; // default
 
     const flags = getSplitFlags(direction);
     const escapedCommand = escapeForSendKeys(command);

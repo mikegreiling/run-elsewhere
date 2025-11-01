@@ -21,7 +21,7 @@ export function detectEnvironment(): Environment {
   const warpAvailable = isMacOS ? isWarpAvailable() : false;
 
   // Detect VSCode/Cursor (special handling - treated as unsupported terminals)
-  const termProgram = process.env.TERM_PROGRAM?.toLowerCase() || "";
+  const termProgram = process.env.TERM_PROGRAM?.toLowerCase() ?? "";
   const inVSCode = termProgram === "vscode";
   const inCursor = termProgram === "cursor";
 

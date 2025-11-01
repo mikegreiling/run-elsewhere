@@ -19,11 +19,11 @@ export class TerminalBackend extends BaseBackend {
     return env.isMacOS && env.terminalAppExists;
   }
 
-  runPane(command: string, direction: SplitDirection): void {
+  runPane(_command: string, _direction: SplitDirection): void {
     throw new Error("Terminal.app does not support pane targets. Use --window instead.");
   }
 
-  runTab(command: string): void {
+  runTab(_command: string): void {
     throw new Error("Terminal.app does not support tab targets. Use --window instead.");
   }
 
@@ -40,7 +40,7 @@ export class TerminalBackend extends BaseBackend {
     }
   }
 
-  getDryRunInfo(target: TargetType, command: string, direction?: SplitDirection): DryRunInfo {
+  getDryRunInfo(target: TargetType, command: string, _direction?: SplitDirection): DryRunInfo {
     const targetType = target === "pane" ? "window (panes unsupported)" : target;
     const escapedCommand = escapeForAppleScript(command);
     const appleScript = `tell application "Terminal"\n  activate\n  do script "${escapedCommand}"\nend tell`;

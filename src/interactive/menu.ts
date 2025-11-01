@@ -36,15 +36,13 @@ export async function selectBackendInteractive(
       backend.name === "zellij"
     ) {
       contextHints.push("(current)");
-    } else if (
-      env.currentTerminal === backend.name &&
-      (env.currentTerminal === "Terminal" ||
-        env.currentTerminal === "iTerm2" ||
-        env.currentTerminal === "kitty" ||
-        env.currentTerminal === "Ghostty" ||
-        env.currentTerminal === "Warp")
-    ) {
-      contextHints.push("(detected)");
+    } else if (env.currentTerminal === backend.name) {
+      // Mark as detected if current terminal matches this backend
+      // Excludes multiplexers (already handled above)
+      const guiTerminals = ["terminal", "iTerm2", "kitty", "Ghostty", "Warp"];
+      if (guiTerminals.includes(backend.name)) {
+        contextHints.push("(detected)");
+      }
     }
 
     // Mark experimental
@@ -65,16 +63,14 @@ export async function selectBackendInteractive(
   });
 
   // Prompt for backend selection
-  const backendAnswer = (await enquirer.prompt([
+  const backendAnswer = await enquirer.prompt<{ backend: string }>([
     {
       type: "select",
       name: "backend",
       message: "Select terminal backend:",
       choices,
     },
-  ])) as {
-    backend: string;
-  };
+  ]);
 
   // Find selected backend
   const selectedBackend = availableBackends.find(
@@ -89,16 +85,14 @@ export async function selectBackendInteractive(
   let targetChoice: TargetType | undefined;
 
   if (supportedTargets.length > 1) {
-    const targetAnswer = (await enquirer.prompt([
+    const targetAnswer = await enquirer.prompt<{ target: TargetType }>([
       {
         type: "select",
         name: "target",
         message: "Select target type:",
         choices: supportedTargets,
       },
-    ])) as {
-      target: TargetType;
-    };
+    ]);
     targetChoice = targetAnswer.target;
   } else if (supportedTargets.length === 1) {
     targetChoice = supportedTargets[0];

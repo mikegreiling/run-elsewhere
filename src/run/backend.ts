@@ -79,6 +79,12 @@ export interface Backend {
     command: string,
     direction?: SplitDirection
   ): DryRunInfo;
+
+  /**
+   * Run a command by target type.
+   * Routes to the appropriate method (runPane, runTab, runWindow).
+   */
+  run(target: TargetType, command: string, direction?: SplitDirection): void;
 }
 
 /**
@@ -101,10 +107,10 @@ export abstract class BaseBackend implements Backend {
   ): DryRunInfo;
 
   /**
-   * Helper to run a command by target type.
+   * Run a command by target type.
    * Routes to the appropriate method (runPane, runTab, runWindow).
    */
-  protected run(
+  public run(
     target: TargetType,
     command: string,
     direction?: SplitDirection
@@ -117,19 +123,19 @@ export abstract class BaseBackend implements Backend {
         if (!direction) {
           throw new Error("Direction required for pane target");
         }
-        return this.runPane(command, direction);
+        { this.runPane(command, direction); return; }
 
       case "tab":
         if (!this.capabilities.tab) {
           throw new Error(`${this.name} does not support tab targets`);
         }
-        return this.runTab(command);
+        { this.runTab(command); return; }
 
       case "window":
         if (!this.capabilities.window) {
           throw new Error(`${this.name} does not support window targets`);
         }
-        return this.runWindow(command);
+        { this.runWindow(command); return; }
     }
   }
 
@@ -137,7 +143,7 @@ export abstract class BaseBackend implements Backend {
    * Helper to format a command for human-readable output.
    * Truncates long commands for readability.
    */
-  protected formatCommandForDescription(command: string, maxLength: number = 60): string {
+  protected formatCommandForDescription(command: string, maxLength = 60): string {
     if (command.length <= maxLength) {
       return command;
     }

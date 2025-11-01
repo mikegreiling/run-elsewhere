@@ -35,7 +35,7 @@ export function resolveTargetType(
   if (options.window) requestedTarget = "window";
 
   // If user didn't specify, use smart default for this backend
-  const targetToResolve = requestedTarget || getDefaultTarget(backend);
+  const targetToResolve = requestedTarget ?? getDefaultTarget(backend);
 
   // Try to resolve with degradation
   const result = tryResolveTarget(targetToResolve, backend, options.no ?? false);

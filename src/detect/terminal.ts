@@ -117,7 +117,7 @@ function getParentProcessName(): string | null {
     const ppid = process.ppid;
     if (!ppid) return null;
 
-    const result = execSync(`ps -p ${ppid} -o comm=`, {
+    const result = execSync(`ps -p ${String(ppid)} -o comm=`, {
       encoding: "utf-8",
       stdio: ["ignore", "pipe", "ignore"],
     }).trim();

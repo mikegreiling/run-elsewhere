@@ -6,7 +6,7 @@ import { detectEnvironment } from "./detect/env.js";
 import { resolveCommand } from "./command.js";
 import { createPlanWithInteractive } from "./planner/interactive.js";
 import { EXIT_CODES } from "./constants.js";
-import type { Options, BackendType, TargetType } from "./types.js";
+import type { Options, BackendType } from "./types.js";
 import type { Backend } from "./run/backend.js";
 import { TmuxBackend } from "./run/tmux.js";
 import { ZellijBackend } from "./run/zellij.js";
@@ -15,11 +15,7 @@ import { ITerm2Backend } from "./run/macos/iterm2.js";
 import { KittyBackend } from "./run/cli/kitty.js";
 import { GhosttyBackend } from "./run/macos/ghostty.js";
 import { WarpBackend } from "./run/macos/warp.js";
-
-const packageJson = {
-  name: "run-elsewhere",
-  version: "0.1.0",
-};
+import packageJson from "../package.json" with { type: "json" };
 
 /**
  * Get backend instance by type
@@ -42,9 +38,10 @@ function getBackendInstance(backendType: BackendType): Backend {
       return new WarpBackend();
     case "error":
       throw new Error("Cannot execute error plan type");
-    default:
+    default: {
       const _exhaustive: never = backendType;
       throw new Error(`Unknown backend type: ${String(_exhaustive)}`);
+    }
   }
 }
 
@@ -187,13 +184,14 @@ async function main(): Promise<void> {
     if (options.dryRun) {
       // Format dry-run output with human-readable info + JSON
       if (plan.type === "error") {
-        console.log(`Error: ${plan.error}`);
-        console.log(`Exit code: ${plan.exitCode}`);
+        console.log(`Error: ${plan.error ?? "Unknown error"}`);
+        const exitCode = plan.exitCode ?? EXIT_CODES.GENERIC_ERROR;
+        console.log(`Exit code: ${String(exitCode)}`);
       } else {
         const backend = plan.type === "terminal" ? "Terminal.app" : plan.type;
         console.log(`Backend: ${backend}`);
-        console.log(`Target: ${plan.target}`);
-        if (plan.targetDegraded) {
+        console.log(`Target: ${plan.target ?? "unknown"}`);
+        if (plan.targetDegraded && plan.targetRequested && plan.target) {
           console.log(`⚠ Target degraded from ${plan.targetRequested} to ${plan.target}`);
         }
         if (plan.direction) {
@@ -220,13 +218,19 @@ async function main(): Promise<void> {
       throw new Error("Invalid plan: missing command or target");
     }
 
-    const backend = getBackendInstance(plan.type as BackendType);
-    const direction = plan.direction;
+    // Type guard: plan.type cannot be "error" at this point (checked above)
+    if (plan.type === "error") {
+      throw new Error("Unexpected error plan type");
+    }
+
+    // Explicit type for getBackendInstance to help TypeScript
+    const backendType: Exclude<BackendType, "error"> = plan.type;
+    const backend: Backend = getBackendInstance(backendType);
 
     // Execute the command through the backend
     try {
-      backend.run(plan.target as TargetType, plan.command, direction);
-    } catch (error) {
+      backend.run(plan.target, plan.command, plan.direction);
+    } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       throw new Error(`Backend execution failed: ${errorMessage}`);
     }

@@ -19,7 +19,7 @@ export class WarpBackend extends BaseBackend {
     return env.isMacOS && env.warpAvailable;
   }
 
-  runPane(command: string, direction: SplitDirection): void {
+  runPane(_command: string, _direction: SplitDirection): void {
     throw new Error(
       "Warp does not support pane targets. Please use --tab or --window instead."
     );
@@ -48,7 +48,7 @@ export class WarpBackend extends BaseBackend {
     }
   }
 
-  getDryRunInfo(target: TargetType, command: string, direction?: SplitDirection): DryRunInfo {
+  getDryRunInfo(target: TargetType, command: string, _direction?: SplitDirection): DryRunInfo {
     const formattedCommand = this.formatCommandForDescription(command);
     const shortCommand = formattedCommand.replace(/"/g, '\\"');
 

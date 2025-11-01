@@ -27,7 +27,7 @@ export class GhosttyBackend extends BaseBackend {
     return env.isMacOS && env.ghosttyAvailable;
   }
 
-  runPane(command: string, direction: SplitDirection): void {
+  runPane(_command: string, _direction: SplitDirection): void {
     throw new Error(
       "Ghostty does not support pane targets. Please use --tab or --window instead."
     );
@@ -57,7 +57,7 @@ export class GhosttyBackend extends BaseBackend {
     }
   }
 
-  getDryRunInfo(target: TargetType, command: string, direction?: SplitDirection): DryRunInfo {
+  getDryRunInfo(target: TargetType, command: string, _direction?: SplitDirection): DryRunInfo {
     const formattedCommand = this.formatCommandForDescription(command);
     const shortCommand = formattedCommand.replace(/"/g, '\\"');
 
@@ -69,42 +69,13 @@ export class GhosttyBackend extends BaseBackend {
   }
 
   private createTabViaSystemEvents(command: string): void {
-    const appleScript = `
-tell application "Ghostty"
-  activate
-end tell
-delay 0.2
-tell application "System Events"
-  keystroke "t" using command down
-end tell
-delay 0.1
-tell application "System Events"
-  keystroke "v" using command down
-end tell
-delay 0.1
-tell application "System Events"
-  key code 36
-end tell
-    `.trim();
-
-    // Note: This requires the command to be in the pasteboard
-    // For now, we'll use a simpler approach with open + tell
+    // Note: Full System Events implementation requires pasteboard manipulation
+    // Using simpler approach for now
     this.createTabViaOpen(command);
   }
 
   private createWindowViaSystemEvents(command: string): void {
-    // Create new window by using open -n
-    const appleScript = `
-tell application "Ghostty"
-  activate
-end tell
-delay 0.2
-tell application "System Events"
-  keystroke "n" using command down
-end tell
-    `.trim();
-
-    // For now, we'll use a simpler approach with open -n
+    // Using simpler approach
     this.createWindowViaOpen(command);
   }
 

@@ -18,7 +18,7 @@ export class KittyBackend extends BaseBackend {
     return env.kittyAvailable;
   }
 
-  runPane(command: string, direction: SplitDirection): void {
+  runPane(_command: string, _direction: SplitDirection): void {
     throw new Error(
       "kitty does not support pane targets. Please use --tab or --window instead."
     );
@@ -46,7 +46,7 @@ export class KittyBackend extends BaseBackend {
     }
   }
 
-  getDryRunInfo(target: TargetType, command: string, direction?: SplitDirection): DryRunInfo {
+  getDryRunInfo(target: TargetType, command: string, _direction?: SplitDirection): DryRunInfo {
     const targetType = target === "pane" ? "tab" : target;
     const kittyType = targetType === "tab" ? "tab" : "os-window";
     const shellCommand = this.buildKittyCommand(kittyType, command);
