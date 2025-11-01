@@ -6,9 +6,9 @@ Comprehensive reference for all supported terminal backends.
 
 | Backend | Type | Supports | Experimental | Permissions |
 |---------|------|----------|--------------|-------------|
-| **tmux** | Multiplexer | pane | No | None |
-| **zellij** | Multiplexer | pane | No | None |
-| **Terminal.app** | macOS GUI | window | No | None |
+| **tmux** | Multiplexer | pane, tab, window | No | None |
+| **zellij** | Multiplexer | pane, tab, window | No | None |
+| **Terminal.app** | macOS GUI | tab, window | No | None |
 | **iTerm2** | macOS GUI | tab, window | No | None |
 | **kitty** | Cross-platform GUI | tab, window | No | None |
 | **Ghostty** | macOS GUI | tab, window | Yes | Accessibility |
@@ -19,14 +19,17 @@ Comprehensive reference for all supported terminal backends.
 ### How It Works
 
 Uses tmux's native commands:
-1. `tmux split-window -h/-v [-b]` - Creates new pane
-2. `tmux send-keys "command" Enter` - Executes command
+1. `tmux split-window -h/-v [-b]` - Creates new pane (for `--pane`)
+2. `tmux new-window` - Creates new window (for `--tab`)
+3. `tmux send-keys "command" Enter` - Executes command
+
+For `--window`, attempts to detect and delegate to the underlying GUI terminal emulator (see limitations below).
 
 ### Capabilities
 
 - ✅ Panes (all 4 directions: left, right, up, down)
-- ❌ Tabs (tmux has "windows" but they're different from GUI tabs)
-- ❌ GUI windows
+- ✅ Tabs (creates tmux windows, analogous to GUI tabs)
+- ✅ GUI windows (with detection and delegation)
 
 ### Requirements
 
@@ -35,13 +38,22 @@ Uses tmux's native commands:
 
 ### Known Issues
 
-None.
+**Terminal detection from multiplexers** - When using `--window`, terminal detection relies on `$TERM_PROGRAM` which reflects the environment when tmux was _started_, not the current client. See Troubleshooting for details and workarounds.
 
-### Example
+### Examples
 
 ```bash
+# Pane (default)
 elsewhere -c "npm run dev"
 # Creates: tmux split-window -h && tmux send-keys "npm run dev" Enter
+
+# Tab (creates tmux window)
+elsewhere --tab -c "npm run dev"
+# Creates: tmux new-window && tmux send-keys "npm run dev" Enter
+
+# GUI window (delegates to underlying terminal)
+elsewhere --window -c "npm run dev"
+# Creates new window in detected GUI terminal (kitty, iTerm2, etc.)
 ```
 
 ## zellij
@@ -49,15 +61,18 @@ elsewhere -c "npm run dev"
 ### How It Works
 
 Uses zellij's action commands:
-1. `zellij action new-pane --direction` - Creates new pane
-2. `zellij action write-chars "command"` - Types command
-3. `zellij action write 13` - Presses Enter (ASCII 13)
+1. `zellij action new-pane --direction` - Creates new pane (for `--pane`)
+2. `zellij action new-tab` - Creates new tab (for `--tab`)
+3. `zellij action write-chars "command"` - Types command
+4. `zellij action write 13` - Presses Enter (ASCII 13)
+
+For `--window`, attempts to detect and delegate to the underlying GUI terminal emulator (see limitations below).
 
 ### Capabilities
 
 - ✅ Panes (all 4 directions: left, right, up, down)
-- ❌ Tabs
-- ❌ GUI windows
+- ✅ Tabs (creates zellij tabs)
+- ✅ GUI windows (with detection and delegation)
 
 ### Requirements
 
@@ -66,7 +81,7 @@ Uses zellij's action commands:
 
 ### Known Issues
 
-**Direction bug** - The `--direction` flag doesn't work correctly in zellij:
+**Direction bug** - The `--direction` flag doesn't work correctly in zellij (pane target only):
 - up/down always opens below
 - left/right always opens after
 
@@ -74,13 +89,26 @@ This is a zellij issue, not a run-elsewhere bug.
 
 **Tracking:** https://github.com/zellij-org/zellij/issues/3332
 
-### Example
+**Terminal detection from multiplexers** - When using `--window`, terminal detection relies on `$TERM_PROGRAM` which reflects the environment when zellij was _started_, not the current client. See Troubleshooting for details and workarounds.
+
+### Examples
 
 ```bash
+# Pane (default)
 elsewhere -c "npm run dev"
 # Creates: zellij action new-pane --direction "Right"
 #         zellij action write-chars "npm run dev"
 #         zellij action write 13
+
+# Tab (creates zellij tab)
+elsewhere --tab -c "npm run dev"
+# Creates: zellij action new-tab
+#         zellij action write-chars "npm run dev"
+#         zellij action write 13
+
+# GUI window (delegates to underlying terminal)
+elsewhere --window -c "npm run dev"
+# Creates new window in detected GUI terminal (kitty, iTerm2, etc.)
 ```
 
 ## Terminal.app
@@ -90,17 +118,24 @@ elsewhere -c "npm run dev"
 Uses AppleScript to automate Terminal.app:
 
 ```applescript
+# For windows (new window)
 tell application "Terminal"
   activate
   do script "command"
+end tell
+
+# For tabs (in frontmost window)
+tell application "Terminal"
+  activate
+  do script "command" in front window
 end tell
 ```
 
 ### Capabilities
 
 - ❌ Panes
-- ❌ Tabs (Terminal.app tabs aren't scriptable via `do script`)
-- ✅ Windows
+- ✅ Tabs (creates tabs in frontmost window)
+- ✅ Windows (creates new windows)
 
 ### Requirements
 
@@ -111,13 +146,21 @@ end tell
 
 None. Most reliable backend.
 
-### Example
+### Examples
 
 ```bash
+# Window (default)
 elsewhere -c "npm run dev"
 # Creates: osascript -e 'tell application "Terminal"
 #            activate
 #            do script "npm run dev"
+#          end tell'
+
+# Tab (in frontmost window)
+elsewhere --tab -c "npm run dev"
+# Creates: osascript -e 'tell application "Terminal"
+#            activate
+#            do script "npm run dev" in front window
 #          end tell'
 ```
 
@@ -260,11 +303,22 @@ end tell
 - Can fail if Ghostty loses focus
 - Delays needed for UI responsiveness
 
-### Example
+### Implementation Details
+
+- Detects if Ghostty is currently running
+- If running: sends `Cmd+T` (tab) or `Cmd+N` (window) before typing command
+- If not running: launches Ghostty and types command in the window that opens
+
+### Examples
 
 ```bash
+# Tab (in running Ghostty)
 elsewhere --tab -c "npm run dev"
 # Simulates: Cmd+T, types "npm run dev", presses Enter
+
+# Window
+elsewhere --window -c "npm run dev"
+# Simulates: Cmd+N, types "npm run dev", presses Enter
 ```
 
 ## Warp
@@ -289,11 +343,22 @@ elsewhere --tab -c "npm run dev"
 
 Same as Ghostty - no public scripting API, uses System Events workaround.
 
-### Example
+### Implementation Details
+
+- Detects if Warp is currently running
+- If running: sends `Cmd+T` (tab) or `Cmd+N` (window) before typing command
+- If not running: launches Warp and types command in the window that opens
+
+### Examples
 
 ```bash
+# Tab (in running Warp)
 elsewhere --tab -c "npm run dev"
 # Simulates: Cmd+T, types "npm run dev", presses Enter
+
+# Window
+elsewhere --window -c "npm run dev"
+# Simulates: Cmd+N, types "npm run dev", presses Enter
 ```
 
 ## Backend Priority

@@ -153,9 +153,51 @@ Same issue and solution as SSH. Mosh connections are detected via `$MOSH_CONNECT
 ⚠ Terminal.app does not support tabs; degrading to window
 ```
 
-**Cause:** Terminal.app only supports windows, not tabs.
+**Cause:** Requesting tabs from a backend that only supports windows.
 
 **Solution:** Same as above—accept degradation, use `--no`, or switch backends.
+
+## Multiplexer --window Target
+
+### Terminal detection from within multiplexers
+
+**Context:** When using `--window` from inside a tmux or zellij session, `elsewhere` attempts to detect and delegate to the underlying GUI terminal emulator.
+
+**Limitation:** Terminal detection uses the `$TERM_PROGRAM` environment variable, which reflects the environment when the multiplexer session was _started_, not the terminal currently displaying the session. This means:
+
+```bash
+# Start tmux in kitty
+kitty -e tmux new-session
+
+# Later, attach to tmux from Terminal.app
+tmux attach
+
+# Run elsewhere
+elsewhere --window -c "npm run dev"
+# Still tries to use kitty (from session startup), not Terminal.app (current client)
+```
+
+**Solutions:**
+
+1. **Use explicit terminal flag:**
+   ```bash
+   elsewhere --terminal=Terminal --window -c "npm run dev"
+   ```
+
+2. **Create a new multiplexer session from the desired terminal:**
+   ```bash
+   # Terminal.app
+   tmux new-session
+   elsewhere --window -c "npm run dev"  # Will detect Terminal.app
+   ```
+
+3. **Use interactive mode:**
+   ```bash
+   elsewhere -i -c "npm run dev"
+   # Manually select the terminal from the menu
+   ```
+
+**Why this limitation?** Multiplexer sessions are independent of the client connecting to them. The only reliable environment information available to the session is from its startup. Properly detecting the current client's terminal would require accessing the client process's environment from within the session, which is complex and fragile across different terminal emulators.
 
 ## Exit Code Reference
 
