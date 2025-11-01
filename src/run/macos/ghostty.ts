@@ -2,6 +2,8 @@ import { BaseBackend, type BackendCapabilities, type DryRunInfo } from "../backe
 import type { BackendType, SplitDirection, TargetType } from "../../types.js";
 import type { Environment } from "../../types.js";
 import { executeAppleScript } from "../../utils/applescript.js";
+import { escapeForAppleScript } from "../../utils/escape.js";
+import { isAppRunning } from "../../utils/app-running.js";
 
 /**
  * Ghostty backend implementation using System Events automation.
@@ -35,9 +37,13 @@ export class GhosttyBackend extends BaseBackend {
 
   runTab(command: string): void {
     try {
-      // Use System Events to send keyboard commands to Ghostty
-      // Cmd+T for new tab, then paste command and press Enter
-      this.createTabViaSystemEvents(command);
+      const running = isAppRunning("Ghostty");
+      if (running) {
+        this.createTabViaSystemEvents(command);
+      } else {
+        // App not running, launch it and use the window that opens
+        this.launchAndRun(command);
+      }
     } catch (error) {
       throw new Error(
         `Failed to run command in Ghostty tab: ${error instanceof Error ? error.message : String(error)}`
@@ -47,9 +53,13 @@ export class GhosttyBackend extends BaseBackend {
 
   runWindow(command: string): void {
     try {
-      // Use System Events to open new Ghostty window and run command
-      // Cmd+N for new window (or use open -n), then paste command and press Enter
-      this.createWindowViaSystemEvents(command);
+      const running = isAppRunning("Ghostty");
+      if (running) {
+        this.createWindowViaSystemEvents(command);
+      } else {
+        // App not running, launch it and use the window that opens
+        this.launchAndRun(command);
+      }
     } catch (error) {
       throw new Error(
         `Failed to run command in Ghostty window: ${error instanceof Error ? error.message : String(error)}`
@@ -69,33 +79,53 @@ export class GhosttyBackend extends BaseBackend {
   }
 
   private createTabViaSystemEvents(command: string): void {
-    // Note: Full System Events implementation requires pasteboard manipulation
-    // Using simpler approach for now
-    this.createTabViaOpen(command);
-  }
-
-  private createWindowViaSystemEvents(command: string): void {
-    // Using simpler approach
-    this.createWindowViaOpen(command);
-  }
-
-  private createTabViaOpen(command: string): void {
-    // Use open with direct command invocation
-    // Ghostty supports opening with a command via: ghostty -e "command"
-    // We'll use a fallback to window creation instead
-    this.createWindowViaOpen(command);
-  }
-
-  private createWindowViaOpen(command: string): void {
-    // Create Ghostty window with command
-    // Ghostty can be invoked with: open -a Ghostty -- -e "command"
-    // But we'll use a simpler approach with open -n
-    const escapedCommand = command.replace(/"/g, '\\"').replace(/\$/g, "\\$");
+    const escapedCommand = escapeForAppleScript(command);
     const appleScript = `
 tell application "Ghostty"
   activate
 end tell
 delay 0.2
+tell application "System Events"
+  keystroke "t" using command down
+end tell
+delay 0.1
+tell application "System Events"
+  keystroke "${escapedCommand}"
+  key code 36
+end tell
+    `.trim();
+
+    executeAppleScript(appleScript);
+  }
+
+  private createWindowViaSystemEvents(command: string): void {
+    const escapedCommand = escapeForAppleScript(command);
+    const appleScript = `
+tell application "Ghostty"
+  activate
+end tell
+delay 0.2
+tell application "System Events"
+  keystroke "n" using command down
+end tell
+delay 0.1
+tell application "System Events"
+  keystroke "${escapedCommand}"
+  key code 36
+end tell
+    `.trim();
+
+    executeAppleScript(appleScript);
+  }
+
+  private launchAndRun(command: string): void {
+    // Launch Ghostty and let it open a window, then run the command
+    const escapedCommand = escapeForAppleScript(command);
+    const appleScript = `
+tell application "Ghostty"
+  activate
+end tell
+delay 0.5
 tell application "System Events"
   keystroke "${escapedCommand}"
   key code 36

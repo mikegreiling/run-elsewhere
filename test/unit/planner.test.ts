@@ -33,16 +33,15 @@ describe("createPlan", () => {
     expect(plan.exitCode).toBe(EXIT_CODES.USAGE_ERROR);
   });
 
-  it("degrades --tab to window when using Terminal.app", () => {
-    // --tab is supported, but Terminal.app only supports windows
-    // Target degrades: tab → window
+  it("uses tab when requested and Terminal.app supports it", () => {
+    // Terminal.app now supports tabs
     const options: Options = { tab: true };
     const plan = createPlan("echo hi", options, mockEnv);
     expect(plan.type).toBe("terminal");
     expect(plan.command).toBe("echo hi");
     expect(plan.targetRequested).toBe("tab");
-    expect(plan.target).toBe("window");
-    expect(plan.targetDegraded).toBe(true);
+    expect(plan.target).toBe("tab");
+    expect(plan.targetDegraded).toBe(false);
   });
 
   it("returns tmux plan when forced with --terminal=tmux", () => {

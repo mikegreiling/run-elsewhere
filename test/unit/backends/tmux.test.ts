@@ -32,8 +32,8 @@ describe("TmuxBackend", () => {
   it("declares correct capabilities", () => {
     const backend = new TmuxBackend();
     expect(backend.capabilities.pane).toBe(true);
-    expect(backend.capabilities.tab).toBe(false);
-    expect(backend.capabilities.window).toBe(false);
+    expect(backend.capabilities.tab).toBe(true);
+    expect(backend.capabilities.window).toBe(true);
     expect(backend.capabilities.directions).toEqual([
       "left",
       "right",
@@ -98,19 +98,23 @@ describe("TmuxBackend", () => {
     });
   });
 
-  describe("error messages", () => {
-    it("throws helpful error for tab target", () => {
+  describe("getDryRunInfo", () => {
+    it("returns correct info for tab target", () => {
       const backend = new TmuxBackend();
-      expect(() => backend.runTab("echo test")).toThrow(
-        "tmux does not support tab targets"
-      );
+      const info = backend.getDryRunInfo("tab", "echo test");
+
+      expect(info.command).toContain("tmux new-window");
+      expect(info.description).toContain("tmux window");
+      expect(info.requiresPermissions).toBe(false);
     });
 
-    it("throws helpful error for window target", () => {
+    it("returns correct info for window target", () => {
       const backend = new TmuxBackend();
-      expect(() => backend.runWindow("echo test")).toThrow(
-        "tmux does not support window targets"
-      );
+      const info = backend.getDryRunInfo("window", "echo test");
+
+      expect(info.command).toBeDefined();
+      expect(info.description).toContain("terminal window");
+      expect(info.requiresPermissions).toBe(false);
     });
   });
 });

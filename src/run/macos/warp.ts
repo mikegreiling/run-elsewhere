@@ -1,8 +1,9 @@
 import { BaseBackend, type BackendCapabilities, type DryRunInfo } from "../backend.js";
-import type { BackendType, SplitDirection, TargetType} from "../../types.js";
+import type { BackendType, SplitDirection, TargetType } from "../../types.js";
 import type { Environment } from "../../types.js";
 import { executeAppleScript } from "../../utils/applescript.js";
 import { escapeForAppleScript } from "../../utils/escape.js";
+import { isAppRunning } from "../../utils/app-running.js";
 
 export class WarpBackend extends BaseBackend {
   name: BackendType = "Warp";
@@ -27,9 +28,12 @@ export class WarpBackend extends BaseBackend {
 
   runTab(command: string): void {
     try {
-      // Use System Events to send keyboard commands to Warp
-      // Warp supports Cmd+T for new tab
-      this.createTabViaSystemEvents(command);
+      const running = isAppRunning("Warp");
+      if (running) {
+        this.createTabViaSystemEvents(command);
+      } else {
+        this.launchAndRun(command);
+      }
     } catch (error) {
       throw new Error(
         `Failed to run command in Warp tab: ${error instanceof Error ? error.message : String(error)}`
@@ -39,8 +43,12 @@ export class WarpBackend extends BaseBackend {
 
   runWindow(command: string): void {
     try {
-      // Use System Events to open new Warp window
-      this.createWindowViaSystemEvents(command);
+      const running = isAppRunning("Warp");
+      if (running) {
+        this.createWindowViaSystemEvents(command);
+      } else {
+        this.launchAndRun(command);
+      }
     } catch (error) {
       throw new Error(
         `Failed to run command in Warp window: ${error instanceof Error ? error.message : String(error)}`
@@ -90,6 +98,23 @@ tell application "System Events"
   keystroke "n" using command down
 end tell
 delay 0.1
+tell application "System Events"
+  keystroke "${escapedCommand}"
+  key code 36
+end tell
+    `.trim();
+
+    executeAppleScript(appleScript);
+  }
+
+  private launchAndRun(command: string): void {
+    // Launch Warp and let it open a window, then run the command
+    const escapedCommand = escapeForAppleScript(command);
+    const appleScript = `
+tell application "Warp"
+  activate
+end tell
+delay 0.5
 tell application "System Events"
   keystroke "${escapedCommand}"
   key code 36

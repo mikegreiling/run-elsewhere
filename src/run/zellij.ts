@@ -8,8 +8,8 @@ export class ZellijBackend extends BaseBackend {
 
   capabilities: BackendCapabilities = {
     pane: true,
-    tab: false,
-    window: false,
+    tab: true,
+    window: true,
     directions: ["left", "right", "up", "down"],
     experimental: false,
   };
@@ -52,32 +52,82 @@ export class ZellijBackend extends BaseBackend {
     }
   }
 
-  runTab(_command: string): void {
-    throw new Error("zellij does not support tab targets. Use pane instead.");
+  runTab(command: string): void {
+    try {
+      // Escape command for use in double quotes
+      const escapedCommand = command
+        .replace(/\\/g, "\\\\")
+        .replace(/"/g, '\\"')
+        .replace(/\$/g, "\\$")
+        .replace(/`/g, "\\`");
+
+      // Create new tab (zellij's equivalent of tmux window)
+      execSync("zellij action new-tab", { stdio: "inherit" });
+
+      // Write command to the focused tab
+      execSync(`zellij action write-chars "${escapedCommand}"`, {
+        stdio: "inherit",
+      });
+
+      // Send Enter key (ASCII 13) to execute the command
+      execSync("zellij action write 13", { stdio: "inherit" });
+    } catch (error) {
+      throw new Error(
+        `Failed to run command in zellij tab: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
   }
 
-  runWindow(_command: string): void {
-    throw new Error("zellij does not support window targets. Use pane instead.");
+  runWindow(command: string): void {
+    try {
+      // Fallback: create a new zellij tab (same as tab behavior)
+      // Future enhancement: could detect and delegate to underlying terminal
+      this.runTab(command);
+    } catch (error) {
+      throw new Error(
+        `Failed to run command in zellij window: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
   }
 
   getDryRunInfo(target: TargetType, command: string, direction?: SplitDirection): DryRunInfo {
     direction ??= "right"; // default
 
-    const zellijDirection = mapSplitDirection(direction);
     const escapedCommand = command
       .replace(/\\/g, "\\\\")
       .replace(/"/g, '\\"')
       .replace(/\$/g, "\\$")
       .replace(/`/g, "\\`");
 
-    const zellijCommand = `zellij action new-pane --direction "${zellijDirection}" && zellij action write-chars "${escapedCommand}" && zellij action write 13`;
     const formattedCommand = this.formatCommandForDescription(command);
 
-    return {
-      command: zellijCommand,
-      description: `zellij pane (${direction}): "${formattedCommand}"`,
-      requiresPermissions: false,
-    };
+    switch (target) {
+      case "pane": {
+        const zellijDirection = mapSplitDirection(direction);
+        const zellijCommand = `zellij action new-pane --direction "${zellijDirection}" && zellij action write-chars "${escapedCommand}" && zellij action write 13`;
+        return {
+          command: zellijCommand,
+          description: `zellij pane (${direction}): "${formattedCommand}"`,
+          requiresPermissions: false,
+        };
+      }
+      case "tab": {
+        const zellijCommand = `zellij action new-tab && zellij action write-chars "${escapedCommand}" && zellij action write 13`;
+        return {
+          command: zellijCommand,
+          description: `zellij tab: "${formattedCommand}"`,
+          requiresPermissions: false,
+        };
+      }
+      case "window": {
+        const zellijCommand = `zellij action new-tab && zellij action write-chars "${escapedCommand}" && zellij action write 13`;
+        return {
+          command: zellijCommand,
+          description: `zellij tab: "${formattedCommand}"`,
+          requiresPermissions: false,
+        };
+      }
+    }
   }
 }
 

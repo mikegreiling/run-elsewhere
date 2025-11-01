@@ -9,7 +9,7 @@ export class TerminalBackend extends BaseBackend {
 
   capabilities: BackendCapabilities = {
     pane: false,
-    tab: false,
+    tab: true,
     window: true,
     directions: [],
     experimental: false,
@@ -23,8 +23,19 @@ export class TerminalBackend extends BaseBackend {
     throw new Error("Terminal.app does not support pane targets. Use --window instead.");
   }
 
-  runTab(_command: string): void {
-    throw new Error("Terminal.app does not support tab targets. Use --window instead.");
+  runTab(command: string): void {
+    try {
+      const escapedCommand = escapeForAppleScript(command);
+      // Create a tab in the frontmost Terminal window using do script
+      // The "in front window" clause automatically creates a tab in an existing window
+      const appleScript = `tell application "Terminal"\n  activate\n  do script "${escapedCommand}" in front window\nend tell`;
+
+      executeAppleScript(appleScript);
+    } catch (error) {
+      throw new Error(
+        `Failed to run command in Terminal.app tab: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
   }
 
   runWindow(command: string): void {
@@ -41,16 +52,35 @@ export class TerminalBackend extends BaseBackend {
   }
 
   getDryRunInfo(target: TargetType, command: string, _direction?: SplitDirection): DryRunInfo {
-    const targetType = target === "pane" ? "window (panes unsupported)" : target;
-    const escapedCommand = escapeForAppleScript(command);
-    const appleScript = `tell application "Terminal"\n  activate\n  do script "${escapedCommand}"\nend tell`;
     const formattedCommand = this.formatCommandForDescription(command);
 
-    return {
-      command: `osascript -e '${appleScript.replace(/'/g, "'\\''")}'`,
-      description: `Terminal.app ${targetType}: "${formattedCommand}"`,
-      requiresPermissions: false,
-    };
+    switch (target) {
+      case "tab": {
+        const escapedCommand = escapeForAppleScript(command);
+        const appleScript = `tell application "Terminal"\n  activate\n  do script "${escapedCommand}" in front window\nend tell`;
+        return {
+          command: `osascript -e '${appleScript.replace(/'/g, "'\\''")}'`,
+          description: `Terminal.app tab: "${formattedCommand}"`,
+          requiresPermissions: false,
+        };
+      }
+      case "window": {
+        const escapedCommand = escapeForAppleScript(command);
+        const appleScript = `tell application "Terminal"\n  activate\n  do script "${escapedCommand}"\nend tell`;
+        return {
+          command: `osascript -e '${appleScript.replace(/'/g, "'\\''")}'`,
+          description: `Terminal.app window: "${formattedCommand}"`,
+          requiresPermissions: false,
+        };
+      }
+      case "pane": {
+        return {
+          command: "N/A (panes unsupported)",
+          description: `Terminal.app window (panes unsupported): "${formattedCommand}"`,
+          requiresPermissions: false,
+        };
+      }
+    }
   }
 }
 

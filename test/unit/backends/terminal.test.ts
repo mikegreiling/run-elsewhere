@@ -32,7 +32,7 @@ describe("TerminalBackend", () => {
   it("declares correct capabilities", () => {
     const backend = new TerminalBackend();
     expect(backend.capabilities.pane).toBe(false);
-    expect(backend.capabilities.tab).toBe(false);
+    expect(backend.capabilities.tab).toBe(true);
     expect(backend.capabilities.window).toBe(true);
     expect(backend.capabilities.directions).toEqual([]);
     expect(backend.capabilities.experimental).toBe(false);
@@ -69,6 +69,17 @@ describe("TerminalBackend", () => {
       expect(info.requiresPermissions).toBe(false);
     });
 
+    it("returns correct info for tab target", () => {
+      const backend = new TerminalBackend();
+      const info = backend.getDryRunInfo("tab", "echo test");
+
+      expect(info.command).toContain("osascript");
+      expect(info.command).toContain("in front window");
+      expect(info.description).toContain("Terminal.app");
+      expect(info.description).toContain("tab");
+      expect(info.requiresPermissions).toBe(false);
+    });
+
     it("escapes command properly", () => {
       const backend = new TerminalBackend();
       const info = backend.getDryRunInfo("window", 'echo "test"');
@@ -90,13 +101,6 @@ describe("TerminalBackend", () => {
       const backend = new TerminalBackend();
       expect(() => backend.runPane("echo test", "right")).toThrow(
         "Terminal.app does not support pane targets"
-      );
-    });
-
-    it("throws helpful error for tab target", () => {
-      const backend = new TerminalBackend();
-      expect(() => backend.runTab("echo test")).toThrow(
-        "Terminal.app does not support tab targets"
       );
     });
   });
