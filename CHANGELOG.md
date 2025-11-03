@@ -1,3 +1,10 @@
+## [0.5.4](https://github.com/mikegreiling/run-elsewhere/compare/v0.5.3...v0.5.4) (2025-11-03)
+
+
+### Bug Fixes
+
+* surface --no-tty option in help menu with description ([abdabc4](https://github.com/mikegreiling/run-elsewhere/commit/abdabc46d904570ebc293474728dd43f01585110))
+
 ## [0.5.3](https://github.com/mikegreiling/run-elsewhere/compare/v0.5.2...v0.5.3) (2025-11-03)
 
 
