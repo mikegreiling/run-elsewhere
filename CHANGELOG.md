@@ -1,3 +1,10 @@
+## [0.5.2](https://github.com/mikegreiling/run-elsewhere/compare/v0.5.1...v0.5.2) (2025-11-03)
+
+
+### Bug Fixes
+
+* resolve --no-tty parsing by adding complementary --tty option ([c0796d7](https://github.com/mikegreiling/run-elsewhere/commit/c0796d76e99eb30da744e164a851c9aa712437f1))
+
 ## [0.5.1](https://github.com/mikegreiling/run-elsewhere/compare/v0.5.0...v0.5.1) (2025-11-03)
 
 
