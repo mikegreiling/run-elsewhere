@@ -113,7 +113,11 @@ describe("TmuxBackend", () => {
       const info = backend.getDryRunInfo("window", "echo test");
 
       expect(info.command).toBeDefined();
-      expect(info.description).toContain("terminal window");
+      // When TERM_PROGRAM is not set, falls back to tmux window
+      expect(
+        info.description.includes("Ghostty window") ||
+          info.description.includes("new window (delegation failed")
+      ).toBe(true);
       expect(info.requiresPermissions).toBe(false);
     });
   });

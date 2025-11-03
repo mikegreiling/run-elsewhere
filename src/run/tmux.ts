@@ -2,6 +2,12 @@ import { execSync } from "child_process";
 import { BaseBackend, type BackendCapabilities, type DryRunInfo } from "./backend.js";
 import type { BackendType, SplitDirection, TargetType } from "../types.js";
 import type { Environment } from "../types.js";
+import type { Backend } from "./backend.js";
+import { ITerm2Backend } from "./macos/iterm2.js";
+import { KittyBackend } from "./cli/kitty.js";
+import { GhosttyBackend } from "./macos/ghostty.js";
+import { WarpBackend } from "./macos/warp.js";
+import { TerminalBackend } from "./macos/terminal.js";
 
 export class TmuxBackend extends BaseBackend {
   name: BackendType = "tmux";
@@ -95,10 +101,20 @@ export class TmuxBackend extends BaseBackend {
         };
       }
       case "window": {
-        const tmuxCommand = `tmux new-window && tmux send-keys "${escapedCommand}" Enter (or delegate to terminal)`;
+        // Try to detect the underlying terminal for accurate dry-run info
+        const detectedTerminal = this.detectUnderlyingTerminal();
+        if (detectedTerminal) {
+          return {
+            command: `(delegate to ${detectedTerminal})`,
+            description: `${detectedTerminal} window: "${formattedCommand}"`,
+            requiresPermissions: false,
+          };
+        }
+        // Fallback: show what will happen if delegation fails
+        const tmuxCommand = `tmux new-window && tmux send-keys "${escapedCommand}" Enter (fallback)`;
         return {
           command: tmuxCommand,
-          description: `new terminal window: "${formattedCommand}"`,
+          description: `new window (delegation failed, using tmux): "${formattedCommand}"`,
           requiresPermissions: false,
         };
       }
@@ -122,12 +138,30 @@ export class TmuxBackend extends BaseBackend {
     return null;
   }
 
-  private delegateToTerminal(_terminalName: string, _command: string): void {
-    // This is a fallback mechanism. In practice, delegating to another backend
-    // from within tmux is complex because we'd need to exec out of tmux context.
-    // For now, we fall back to tab behavior (creating a tmux window).
-    // A more sophisticated implementation could use tmux's socket to communicate
-    // with the terminal process, but that's beyond the current scope.
+  private delegateToTerminal(terminalName: string, command: string): void {
+    // Map terminal names to backend instances
+    const terminalBackends: Record<string, Backend> = {
+      "iTerm2": new ITerm2Backend(),
+      "kitty": new KittyBackend(),
+      "Ghostty": new GhosttyBackend(),
+      "Warp": new WarpBackend(),
+      "terminal": new TerminalBackend(),
+    };
+
+    const backend = terminalBackends[terminalName];
+    if (!backend) {
+      // Fallback to tmux window if terminal not recognized
+      this.runTab(command);
+      return;
+    }
+
+    try {
+      // Delegate to the GUI backend's window creation
+      backend.runWindow(command);
+    } catch (error) {
+      // If delegation fails, fall back to tmux window
+      this.runTab(command);
+    }
   }
 }
 

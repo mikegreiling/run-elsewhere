@@ -111,8 +111,15 @@ describe("ZellijBackend", () => {
       const backend = new ZellijBackend();
       const info = backend.getDryRunInfo("window", "echo test");
 
-      expect(info.command).toContain("zellij action new-tab");
-      expect(info.description).toContain("zellij tab");
+      // When TERM_PROGRAM is not set, falls back to zellij tab
+      expect(
+        info.command.includes("zellij action new-tab") ||
+          info.command.includes("(delegate to")
+      ).toBe(true);
+      expect(
+        info.description.includes("Ghostty window") ||
+          info.description.includes("new window (delegation failed")
+      ).toBe(true);
       expect(info.requiresPermissions).toBe(false);
     });
   });

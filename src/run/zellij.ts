@@ -2,6 +2,12 @@ import { execSync } from "child_process";
 import { BaseBackend, type BackendCapabilities, type DryRunInfo } from "./backend.js";
 import type { BackendType, SplitDirection, TargetType } from "../types.js";
 import type { Environment } from "../types.js";
+import type { Backend } from "./backend.js";
+import { ITerm2Backend } from "./macos/iterm2.js";
+import { KittyBackend } from "./cli/kitty.js";
+import { GhosttyBackend } from "./macos/ghostty.js";
+import { WarpBackend } from "./macos/warp.js";
+import { TerminalBackend } from "./macos/terminal.js";
 
 export class ZellijBackend extends BaseBackend {
   name: BackendType = "zellij";
@@ -80,8 +86,15 @@ export class ZellijBackend extends BaseBackend {
 
   runWindow(command: string): void {
     try {
+      // Delegate to a GUI terminal window if we can detect one
+      const detectedTerminal = this.detectUnderlyingTerminal();
+      if (detectedTerminal) {
+        // Create a new window in the detected terminal
+        this.delegateToTerminal(detectedTerminal, command);
+        return;
+      }
+
       // Fallback: create a new zellij tab (same as tab behavior)
-      // Future enhancement: could detect and delegate to underlying terminal
       this.runTab(command);
     } catch (error) {
       throw new Error(
@@ -120,13 +133,66 @@ export class ZellijBackend extends BaseBackend {
         };
       }
       case "window": {
-        const zellijCommand = `zellij action new-tab && zellij action write-chars "${escapedCommand}" && zellij action write 13`;
+        // Try to detect the underlying terminal for accurate dry-run info
+        const detectedTerminal = this.detectUnderlyingTerminal();
+        if (detectedTerminal) {
+          return {
+            command: `(delegate to ${detectedTerminal})`,
+            description: `${detectedTerminal} window: "${formattedCommand}"`,
+            requiresPermissions: false,
+          };
+        }
+        // Fallback: show what will happen if delegation fails
+        const zellijCommand = `zellij action new-tab && zellij action write-chars "${escapedCommand}" && zellij action write 13 (fallback)`;
         return {
           command: zellijCommand,
-          description: `zellij tab: "${formattedCommand}"`,
+          description: `new window (delegation failed, using zellij): "${formattedCommand}"`,
           requiresPermissions: false,
         };
       }
+    }
+  }
+
+  private detectUnderlyingTerminal(): string | null {
+    // Try to detect the terminal that started the zellij session
+    // TERM_PROGRAM reflects the environment when zellij was started
+    const termProgram = process.env.TERM_PROGRAM?.toLowerCase();
+
+    // Map to terminal names we support
+    if (termProgram?.includes("iterm")) return "iTerm2";
+    if (termProgram?.includes("kitty")) return "kitty";
+    if (termProgram?.includes("ghostty")) return "Ghostty";
+    if (termProgram?.includes("warp")) return "Warp";
+    if (termProgram?.includes("apple")) return "terminal";
+
+    // Note: This detection has limitations - it reflects the environment when
+    // the zellij session was started, not necessarily the current attaching client's terminal.
+    return null;
+  }
+
+  private delegateToTerminal(terminalName: string, command: string): void {
+    // Map terminal names to backend instances
+    const terminalBackends: Record<string, Backend> = {
+      "iTerm2": new ITerm2Backend(),
+      "kitty": new KittyBackend(),
+      "Ghostty": new GhosttyBackend(),
+      "Warp": new WarpBackend(),
+      "terminal": new TerminalBackend(),
+    };
+
+    const backend = terminalBackends[terminalName];
+    if (!backend) {
+      // Fallback to zellij tab if terminal not recognized
+      this.runTab(command);
+      return;
+    }
+
+    try {
+      // Delegate to the GUI backend's window creation
+      backend.runWindow(command);
+    } catch (error) {
+      // If delegation fails, fall back to zellij tab
+      this.runTab(command);
     }
   }
 }

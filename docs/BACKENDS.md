@@ -23,7 +23,9 @@ Uses tmux's native commands:
 2. `tmux new-window` - Creates new window (for `--tab`)
 3. `tmux send-keys "command" Enter` - Executes command
 
-For `--window`, attempts to detect and delegate to the underlying GUI terminal emulator (see limitations below).
+For `--window`, detects the underlying GUI terminal emulator via `$TERM_PROGRAM` and delegates to it:
+- If detected (kitty, iTerm2, Ghostty, Warp, Terminal.app): Creates window in that GUI terminal
+- If not detected: Falls back to creating a tmux window
 
 ### Capabilities
 
@@ -66,7 +68,9 @@ Uses zellij's action commands:
 3. `zellij action write-chars "command"` - Types command
 4. `zellij action write 13` - Presses Enter (ASCII 13)
 
-For `--window`, attempts to detect and delegate to the underlying GUI terminal emulator (see limitations below).
+For `--window`, detects the underlying GUI terminal emulator via `$TERM_PROGRAM` and delegates to it:
+- If detected (kitty, iTerm2, Ghostty, Warp, Terminal.app): Creates window in that GUI terminal
+- If not detected: Falls back to creating a zellij tab
 
 ### Capabilities
 
