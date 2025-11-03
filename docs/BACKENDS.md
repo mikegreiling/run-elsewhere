@@ -8,7 +8,7 @@ Comprehensive reference for all supported terminal backends.
 |---------|------|----------|--------------|-------------|
 | **tmux** | Multiplexer | pane, tab, window | No | None |
 | **zellij** | Multiplexer | pane, tab, window | No | None |
-| **Terminal.app** | macOS GUI | tab, window | No | None |
+| **Terminal.app** | macOS GUI | window | No | None |
 | **iTerm2** | macOS GUI | tab, window | No | None |
 | **kitty** | Cross-platform GUI | tab, window | No | None |
 | **Ghostty** | macOS GUI | tab, window | Yes | Accessibility |
@@ -118,23 +118,16 @@ elsewhere --window -c "npm run dev"
 Uses AppleScript to automate Terminal.app:
 
 ```applescript
-# For windows (new window)
 tell application "Terminal"
   activate
   do script "command"
-end tell
-
-# For tabs (in frontmost window)
-tell application "Terminal"
-  activate
-  do script "command" in front window
 end tell
 ```
 
 ### Capabilities
 
 - ❌ Panes
-- ✅ Tabs (creates tabs in frontmost window)
+- ❌ Tabs (not supported via AppleScript - see limitations)
 - ✅ Windows (creates new windows)
 
 ### Requirements
@@ -144,7 +137,11 @@ end tell
 
 ### Known Issues
 
-None. Most reliable backend.
+**No tab support via AppleScript** - The `do script` command in Terminal.app has no native way to create tabs:
+- `do script "command"` → creates a NEW WINDOW
+- `do script "command" in window 1` → runs in the CURRENT TAB (does not create new tab)
+
+There is no AppleScript command to create a new tab in Terminal.app. If you request `--tab`, it will automatically degrade to `--window` unless you use `--no` flag (strict mode).
 
 ### Examples
 
@@ -156,12 +153,10 @@ elsewhere -c "npm run dev"
 #            do script "npm run dev"
 #          end tell'
 
-# Tab (in frontmost window)
+# Tab requested but degraded to window
 elsewhere --tab -c "npm run dev"
-# Creates: osascript -e 'tell application "Terminal"
-#            activate
-#            do script "npm run dev" in front window
-#          end tell'
+# ⚠ Terminal does not support tabs; degrading to window
+# Behaves same as above
 ```
 
 ## iTerm2
