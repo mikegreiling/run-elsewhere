@@ -104,10 +104,10 @@ async function main(): Promise<void> {
         alias: "y",
       })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      .option("no-tty", {
+      .option("tty", {
         type: "boolean",
-        description: "Alias for --yes (auto-select, no interactive prompt)",
-        hidden: true,
+        description: "Interactive mode (default behavior)",
+        default: undefined,
       })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       .option("interactive", {
@@ -157,7 +157,7 @@ async function main(): Promise<void> {
       left?: boolean;
       right?: boolean;
       yes?: boolean;
-      "no-tty"?: boolean;
+      tty?: boolean;
       interactive?: boolean;
       no?: boolean;
       command?: string;
@@ -184,7 +184,7 @@ async function main(): Promise<void> {
       interactive: argv.interactive,
       no: argv.no,
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-      yes: argv.yes || argv["no-tty"], // --no-tty is an alias for --yes
+      yes: argv.yes || argv.tty === false, // Use || not ?? because we need false to trigger right side
       dryRun: argv["dry-run"],
       verbose: argv.verbose,
     };
