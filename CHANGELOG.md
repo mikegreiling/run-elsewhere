@@ -1,3 +1,10 @@
+## [0.3.1](https://github.com/mikegreiling/run-elsewhere/compare/v0.3.0...v0.3.1) (2025-11-03)
+
+
+### Bug Fixes
+
+* implement bug fixes for multiplexer and terminal backends ([ca51061](https://github.com/mikegreiling/run-elsewhere/commit/ca51061bf1486d54c9fb6ee84c7417bca8b22145))
+
 # [0.3.0](https://github.com/mikegreiling/run-elsewhere/compare/v0.2.3...v0.3.0) (2025-11-01)
 
 
