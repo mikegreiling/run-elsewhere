@@ -1,3 +1,10 @@
+## [0.5.3](https://github.com/mikegreiling/run-elsewhere/compare/v0.5.2...v0.5.3) (2025-11-03)
+
+
+### Bug Fixes
+
+* hide --tty option from help menu ([c30a958](https://github.com/mikegreiling/run-elsewhere/commit/c30a958ed76afd5295a1278717cf7b25d8dcf6a2))
+
 ## [0.5.2](https://github.com/mikegreiling/run-elsewhere/compare/v0.5.1...v0.5.2) (2025-11-03)
 
 
