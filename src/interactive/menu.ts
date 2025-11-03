@@ -21,7 +21,8 @@ export async function selectBackendInteractive(
   availableBackends: Backend[],
   env: Environment
 ): Promise<MenuSelection> {
-  // Build choice list with context info
+  // Build choice list with context info and display name mapping
+  const displayNameToBackend = new Map<string, Backend>();
   const choices = availableBackends.map((backend) => {
     const contextHints: string[] = [];
 
@@ -55,10 +56,14 @@ export async function selectBackendInteractive(
       backend.name === "terminal" ? "Terminal.app" : backend.name;
     const target = getBackendTargets(backend).join("/");
     const context = contextHints.length > 0 ? ` [${contextHints.join(", ")}]` : "";
+    const choiceDisplay = `${displayName} (${target})${context}`;
+
+    // Store mapping for lookup after selection
+    displayNameToBackend.set(choiceDisplay, backend);
 
     return {
-      name: `${displayName} (${target})${context}`,
-      value: backend.name,
+      name: choiceDisplay,
+      value: choiceDisplay,
     };
   });
 
@@ -72,10 +77,8 @@ export async function selectBackendInteractive(
     },
   ]);
 
-  // Find selected backend
-  const selectedBackend = availableBackends.find(
-    (b) => b.name === backendAnswer.backend
-  );
+  // Find selected backend using the display name mapping
+  const selectedBackend = displayNameToBackend.get(backendAnswer.backend);
   if (!selectedBackend) {
     throw new Error(`Backend not found: ${backendAnswer.backend}`);
   }
