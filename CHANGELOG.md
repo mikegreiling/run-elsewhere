@@ -1,3 +1,15 @@
+# [0.4.0](https://github.com/mikegreiling/run-elsewhere/compare/v0.3.4...v0.4.0) (2025-11-03)
+
+
+### Bug Fixes
+
+* prefix unused error variables with underscore ([69c72cc](https://github.com/mikegreiling/run-elsewhere/commit/69c72cc75fdc6011e810f1e931b2db17376dba87))
+
+
+### Features
+
+* implement window delegation for tmux and zellij ([55a8c41](https://github.com/mikegreiling/run-elsewhere/commit/55a8c418089e6253874b935fc5f452c8e12b3f45))
+
 ## [0.3.4](https://github.com/mikegreiling/run-elsewhere/compare/v0.3.3...v0.3.4) (2025-11-03)
 
 
