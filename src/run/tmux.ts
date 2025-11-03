@@ -158,7 +158,7 @@ export class TmuxBackend extends BaseBackend {
     try {
       // Delegate to the GUI backend's window creation
       backend.runWindow(command);
-    } catch (error) {
+    } catch (_error) {
       // If delegation fails, fall back to tmux window
       this.runTab(command);
     }
