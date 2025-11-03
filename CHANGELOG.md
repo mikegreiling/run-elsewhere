@@ -1,3 +1,10 @@
+## [0.4.1](https://github.com/mikegreiling/run-elsewhere/compare/v0.4.0...v0.4.1) (2025-11-03)
+
+
+### Bug Fixes
+
+* implement process tree walking for GUI terminal detection in multiplexers ([cef8f6f](https://github.com/mikegreiling/run-elsewhere/commit/cef8f6facde76f6aa26bbe45481b545be55cb9e2))
+
 # [0.4.0](https://github.com/mikegreiling/run-elsewhere/compare/v0.3.4...v0.4.0) (2025-11-03)
 
 
