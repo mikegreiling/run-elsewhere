@@ -101,7 +101,13 @@ async function main(): Promise<void> {
       .option("yes", {
         type: "boolean",
         description: "Auto-select first available backend",
-        alias: ["y", "no-tty"],
+        alias: "y",
+      })
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      .option("no-tty", {
+        type: "boolean",
+        description: "Alias for --yes (auto-select, no interactive prompt)",
+        hidden: true,
       })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       .option("interactive", {
@@ -151,6 +157,7 @@ async function main(): Promise<void> {
       left?: boolean;
       right?: boolean;
       yes?: boolean;
+      "no-tty"?: boolean;
       interactive?: boolean;
       no?: boolean;
       command?: string;
@@ -176,7 +183,8 @@ async function main(): Promise<void> {
       right: argv.right,
       interactive: argv.interactive,
       no: argv.no,
-      yes: argv.yes,
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+      yes: argv.yes || argv["no-tty"], // --no-tty is an alias for --yes
       dryRun: argv["dry-run"],
       verbose: argv.verbose,
     };
