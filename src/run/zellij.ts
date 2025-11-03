@@ -8,6 +8,7 @@ import { KittyBackend } from "./cli/kitty.js";
 import { GhosttyBackend } from "./macos/ghostty.js";
 import { WarpBackend } from "./macos/warp.js";
 import { TerminalBackend } from "./macos/terminal.js";
+import { walkProcessTree } from "../detect/process-tree.js";
 
 export class ZellijBackend extends BaseBackend {
   name: BackendType = "zellij";
@@ -154,19 +155,30 @@ export class ZellijBackend extends BaseBackend {
   }
 
   private detectUnderlyingTerminal(): string | null {
-    // Try to detect the terminal that started the zellij session
-    // TERM_PROGRAM reflects the environment when zellij was started
+    try {
+      // Zellij equivalent: try to get client PID if possible
+      // Note: Zellij's client info is less accessible than tmux's, so we try best-effort
+      // For now, walk process tree from current process
+      const currentPid = process.pid;
+      const detected = walkProcessTree(currentPid);
+      if (detected) {
+        return detected;
+      }
+    } catch {
+      // If process tree walk fails, fall through to TERM_PROGRAM check
+    }
+
+    // Fallback: Try TERM_PROGRAM (limited, but may work in some cases)
     const termProgram = process.env.TERM_PROGRAM?.toLowerCase();
+    if (termProgram && termProgram !== "zellij") {
+      // Only use if it's NOT "zellij" (which means zellij overwrote it)
+      if (termProgram.includes("iterm")) return "iTerm2";
+      if (termProgram.includes("kitty")) return "kitty";
+      if (termProgram.includes("ghostty")) return "Ghostty";
+      if (termProgram.includes("warp")) return "Warp";
+      if (termProgram.includes("apple")) return "terminal";
+    }
 
-    // Map to terminal names we support
-    if (termProgram?.includes("iterm")) return "iTerm2";
-    if (termProgram?.includes("kitty")) return "kitty";
-    if (termProgram?.includes("ghostty")) return "Ghostty";
-    if (termProgram?.includes("warp")) return "Warp";
-    if (termProgram?.includes("apple")) return "terminal";
-
-    // Note: This detection has limitations - it reflects the environment when
-    // the zellij session was started, not necessarily the current attaching client's terminal.
     return null;
   }
 

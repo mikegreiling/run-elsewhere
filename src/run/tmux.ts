@@ -8,6 +8,7 @@ import { KittyBackend } from "./cli/kitty.js";
 import { GhosttyBackend } from "./macos/ghostty.js";
 import { WarpBackend } from "./macos/warp.js";
 import { TerminalBackend } from "./macos/terminal.js";
+import { walkProcessTree } from "../detect/process-tree.js";
 
 export class TmuxBackend extends BaseBackend {
   name: BackendType = "tmux";
@@ -122,19 +123,36 @@ export class TmuxBackend extends BaseBackend {
   }
 
   private detectUnderlyingTerminal(): string | null {
-    // Try to detect the terminal that started the tmux session
-    // TERM_PROGRAM reflects the environment when tmux was started
+    try {
+      // Get the tmux client PID - this is the actual terminal emulator process
+      const clientPidStr = execSync(
+        `tmux display-message -p '#{client_pid}' -t "${process.env.TMUX_PANE ?? "."}"`,
+        { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }
+      ).trim();
+
+      const clientPid = parseInt(clientPidStr, 10);
+      if (!isNaN(clientPid) && clientPid > 0) {
+        // Walk the process tree from the client to find the terminal emulator
+        const detected = walkProcessTree(clientPid);
+        if (detected) {
+          return detected;
+        }
+      }
+    } catch {
+      // If tmux command fails, fall through to TERM_PROGRAM check
+    }
+
+    // Fallback: Try TERM_PROGRAM (limited, but may work in some cases)
     const termProgram = process.env.TERM_PROGRAM?.toLowerCase();
+    if (termProgram && termProgram !== "tmux") {
+      // Only use if it's NOT "tmux" (which means tmux overwrote it)
+      if (termProgram.includes("iterm")) return "iTerm2";
+      if (termProgram.includes("kitty")) return "kitty";
+      if (termProgram.includes("ghostty")) return "Ghostty";
+      if (termProgram.includes("warp")) return "Warp";
+      if (termProgram.includes("apple")) return "terminal";
+    }
 
-    // Map to terminal names we support
-    if (termProgram?.includes("iterm")) return "iTerm2";
-    if (termProgram?.includes("kitty")) return "kitty";
-    if (termProgram?.includes("ghostty")) return "Ghostty";
-    if (termProgram?.includes("warp")) return "Warp";
-    if (termProgram?.includes("apple")) return "terminal";
-
-    // Note: This detection has limitations - it reflects the environment when
-    // the tmux session was started, not necessarily the current attaching client's terminal.
     return null;
   }
 
