@@ -110,6 +110,11 @@ async function main(): Promise<void> {
         default: undefined,
       })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      .option("no-tty", {
+        type: "boolean",
+        description: "Non-interactive mode (same as --yes)",
+      })
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       .option("interactive", {
         type: "boolean",
         description: "Show interactive backend picker",
@@ -158,6 +163,7 @@ async function main(): Promise<void> {
       right?: boolean;
       yes?: boolean;
       tty?: boolean;
+      "no-tty"?: boolean;
       interactive?: boolean;
       no?: boolean;
       command?: string;
@@ -184,7 +190,7 @@ async function main(): Promise<void> {
       interactive: argv.interactive,
       no: argv.no,
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-      yes: argv.yes || argv.tty === false, // Use || not ?? because we need false to trigger right side
+      yes: argv.yes || argv.tty === false || argv["no-tty"], // --yes, --no-tty (explicit), or --no-tty (negation of --tty)
       dryRun: argv["dry-run"],
       verbose: argv.verbose,
     };
