@@ -1,3 +1,10 @@
+## [0.3.2](https://github.com/mikegreiling/run-elsewhere/compare/v0.3.1...v0.3.2) (2025-11-03)
+
+
+### Bug Fixes
+
+* remove Terminal.app tab support due to AppleScript limitations ([1090f34](https://github.com/mikegreiling/run-elsewhere/commit/1090f3419a113b6aa5b1ebf713788b08f707b2f2))
+
 ## [0.3.1](https://github.com/mikegreiling/run-elsewhere/compare/v0.3.0...v0.3.1) (2025-11-03)
 
 
