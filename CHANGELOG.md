@@ -1,3 +1,10 @@
+# [0.5.0](https://github.com/mikegreiling/run-elsewhere/compare/v0.4.1...v0.5.0) (2025-11-03)
+
+
+### Features
+
+* add --verbose flag for debugging process tree detection ([a4f9fba](https://github.com/mikegreiling/run-elsewhere/commit/a4f9fba9bb3e8b0599881bae23a8ca866e668826))
+
 ## [0.4.1](https://github.com/mikegreiling/run-elsewhere/compare/v0.4.0...v0.4.1) (2025-11-03)
 
 
