@@ -1,3 +1,10 @@
+## [0.5.5](https://github.com/mikegreiling/run-elsewhere/compare/v0.5.4...v0.5.5) (2025-11-03)
+
+
+### Bug Fixes
+
+* prevent Terminal.app from launching during environment detection ([bc04e4b](https://github.com/mikegreiling/run-elsewhere/commit/bc04e4b9e7b37b50cdf804f559ea403768dea143))
+
 ## [0.5.4](https://github.com/mikegreiling/run-elsewhere/compare/v0.5.3...v0.5.4) (2025-11-03)
 
 
