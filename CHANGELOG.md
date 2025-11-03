@@ -1,3 +1,10 @@
+## [0.3.4](https://github.com/mikegreiling/run-elsewhere/compare/v0.3.3...v0.3.4) (2025-11-03)
+
+
+### Bug Fixes
+
+* clear interactive flag after menu selection ([90d2bb3](https://github.com/mikegreiling/run-elsewhere/commit/90d2bb32a3ad90f1ee7c1af30413672e7f210283))
+
 ## [0.3.3](https://github.com/mikegreiling/run-elsewhere/compare/v0.3.2...v0.3.3) (2025-11-03)
 
 
