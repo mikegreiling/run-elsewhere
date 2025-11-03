@@ -155,12 +155,14 @@ export class ZellijBackend extends BaseBackend {
   }
 
   private detectUnderlyingTerminal(): string | null {
+    const verbose = process.env.RUN_ELSEWHERE_VERBOSE === "1";
+
     try {
       // Zellij equivalent: try to get client PID if possible
       // Note: Zellij's client info is less accessible than tmux's, so we try best-effort
       // For now, walk process tree from current process
       const currentPid = process.pid;
-      const detected = walkProcessTree(currentPid);
+      const detected = walkProcessTree(currentPid, verbose);
       if (detected) {
         return detected;
       }

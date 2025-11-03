@@ -123,27 +123,46 @@ export class TmuxBackend extends BaseBackend {
   }
 
   private detectUnderlyingTerminal(): string | null {
+    const verbose = process.env.RUN_ELSEWHERE_VERBOSE === "1";
+    if (verbose) {
+      console.error("[DEBUG] TmuxBackend.detectUnderlyingTerminal() called");
+    }
+
     try {
       // Get the tmux client PID - this is the actual terminal emulator process
+      // display-message runs in context of current pane by default
       const clientPidStr = execSync(
-        `tmux display-message -p '#{client_pid}' -t "${process.env.TMUX_PANE ?? "."}"`,
+        `tmux display-message -p '#{client_pid}'`,
         { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }
       ).trim();
+
+      if (verbose) {
+        console.error(`[DEBUG] tmux client PID: ${clientPidStr}`);
+      }
 
       const clientPid = parseInt(clientPidStr, 10);
       if (!isNaN(clientPid) && clientPid > 0) {
         // Walk the process tree from the client to find the terminal emulator
-        const detected = walkProcessTree(clientPid);
+        const detected = walkProcessTree(clientPid, verbose);
+        if (verbose) {
+          console.error(`[DEBUG] walkProcessTree returned: ${detected ?? "null"}`);
+        }
         if (detected) {
           return detected;
         }
       }
-    } catch {
+    } catch (error) {
       // If tmux command fails, fall through to TERM_PROGRAM check
+      if (verbose) {
+        console.error(`[DEBUG] tmux command failed:`, error);
+      }
     }
 
     // Fallback: Try TERM_PROGRAM (limited, but may work in some cases)
     const termProgram = process.env.TERM_PROGRAM?.toLowerCase();
+    if (verbose) {
+      console.error(`[DEBUG] Fallback check: TERM_PROGRAM="${termProgram ?? "not set"}"`);
+    }
     if (termProgram && termProgram !== "tmux") {
       // Only use if it's NOT "tmux" (which means tmux overwrote it)
       if (termProgram.includes("iterm")) return "iTerm2";
@@ -153,6 +172,9 @@ export class TmuxBackend extends BaseBackend {
       if (termProgram.includes("apple")) return "terminal";
     }
 
+    if (verbose) {
+      console.error(`[DEBUG] No terminal detected, returning null`);
+    }
     return null;
   }
 

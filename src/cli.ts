@@ -126,6 +126,11 @@ async function main(): Promise<void> {
         description: "Print plan as JSON and exit",
       })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      .option("verbose", {
+        type: "boolean",
+        description: "Show debug output including process tree detection",
+      })
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       .version(packageJson.version)
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       .alias("v", "version")
@@ -150,6 +155,7 @@ async function main(): Promise<void> {
       no?: boolean;
       command?: string;
       "dry-run"?: boolean;
+      verbose?: boolean;
       _: (string | number)[];
     };
 
@@ -172,7 +178,13 @@ async function main(): Promise<void> {
       no: argv.no,
       yes: argv.yes,
       dryRun: argv["dry-run"],
+      verbose: argv.verbose,
     };
+
+    // Set verbose mode in environment if requested
+    if (options.verbose) {
+      process.env.RUN_ELSEWHERE_VERBOSE = "1";
+    }
 
     // Detect environment
     const env = detectEnvironment();

@@ -15,6 +15,7 @@ export interface Options {
   noTty?: boolean;
   command?: string;
   dryRun?: boolean;
+  verbose?: boolean;
 }
 
 export type SplitDirection = "left" | "right" | "up" | "down";
