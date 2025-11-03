@@ -1,3 +1,10 @@
+## [0.3.3](https://github.com/mikegreiling/run-elsewhere/compare/v0.3.2...v0.3.3) (2025-11-03)
+
+
+### Bug Fixes
+
+* interactive menu selection lookup using display name mapping ([ceb414c](https://github.com/mikegreiling/run-elsewhere/commit/ceb414cf42b0c28466c940955b1c2691d70c0f13))
+
 ## [0.3.2](https://github.com/mikegreiling/run-elsewhere/compare/v0.3.1...v0.3.2) (2025-11-03)
 
 
