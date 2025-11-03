@@ -91,8 +91,8 @@ function matchTerminalEmulator(processName: string): string | null {
   }
   if (
     processName.includes("terminal.app") ||
-    processName === "terminal" ||
-    processName.includes("terminal")
+    processName.includes("/terminal.app/") ||
+    processName === "terminal" // Exact match only to avoid false positives
   ) {
     return "terminal";
   }

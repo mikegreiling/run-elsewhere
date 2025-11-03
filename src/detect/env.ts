@@ -1,4 +1,5 @@
 import { execSync } from "child_process";
+import { existsSync } from "fs";
 import type { Environment } from "../types.js";
 import { detectCurrentTerminal } from "./terminal.js";
 
@@ -60,15 +61,9 @@ function isTmuxAvailable(): boolean {
 }
 
 function isTerminalAppAvailable(): boolean {
-  try {
-    execSync(
-      'osascript -e \'POSIX path of (path to application "Terminal")\'',
-      { stdio: "ignore" }
-    );
-    return true;
-  } catch {
-    return false;
-  }
+  // Check if Terminal.app exists at standard macOS location
+  // Use file system check instead of AppleScript to avoid launching Terminal.app
+  return existsSync("/System/Applications/Utilities/Terminal.app");
 }
 
 function isZellijAvailable(): boolean {
