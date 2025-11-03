@@ -106,7 +106,7 @@ async function main(): Promise<void> {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       .option("tty", {
         type: "boolean",
-        description: "Interactive mode (default behavior)",
+        hidden: true,
         default: undefined,
       })
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
