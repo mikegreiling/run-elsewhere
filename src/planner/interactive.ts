@@ -43,6 +43,7 @@ export async function createPlanWithInteractive(
       const optionsWithForced: Options = {
         ...options,
         terminal: backendName,
+        interactive: false, // Clear interactive flag - we've already handled selection
         // If menu selected a target, use it
         ...(selection.target && { [selection.target]: true }),
       };
